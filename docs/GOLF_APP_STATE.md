@@ -26,7 +26,7 @@ The rules reproduce the 4Score Sheet's own columns exactly
 | | |
 |---|---|
 | Repo | `kvander369/mixed-up-golf` — public (free GitHub Pages requires it) |
-| Local working copy | `C:\Users\vande\Projects\mixed-up-golf` — NOT on Drive; git and Drive fight |
+| Local working copy | `C:\Users\vande\Claude\Projects\mixed-up-golf` — NOT on Drive; git and Drive fight |
 | Hosting | GitHub Pages, branch `main`, folder `/ (root)` |
 
 Verified live: all five files serve with correct content types, `viewport-fit=cover`
