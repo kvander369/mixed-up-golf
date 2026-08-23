@@ -1,0 +1,11 @@
+# Machine-specific, deliberately not published.
+# Comments must be on their own line - git treats a trailing # as part of the pattern.
+
+# desktop shortcut target, specific to this machine
+RESUME-Claude.bat
+
+# shortcut icon, rebuilt from icon.png when needed
+mixedupgolf.ico
+
+# source Ernie; already embedded as a data URI inside index.html
+icon.png
