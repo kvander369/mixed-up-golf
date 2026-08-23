@@ -61,7 +61,13 @@
 
   .stage{height:100dvh;background:var(--ground);}
   .device{height:100%;background:var(--ground);}
-  .screen{height:100%;display:flex;flex-direction:column;background:var(--ground);overflow:hidden;position:relative;}
+  .screen{
+    height:100%;display:flex;flex-direction:column;
+    background:var(--ground);overflow:hidden;position:relative;
+    /* keep the app clear of the status bar / notch. The padding strip shows
+       the dark ground, so the white status glyphs stay readable. */
+    padding-top:env(safe-area-inset-top);
+  }
   .island,.statusbar,.homebar{display:none;}
 
   /* ---------- green app bar ---------- */
