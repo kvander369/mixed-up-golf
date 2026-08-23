@@ -1,0 +1,2297 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<!-- viewport-fit=cover is what makes env(safe-area-inset-*) resolve to real
+     numbers; without it the safe-area padding in the CSS is inert and controls
+     end up under the iPhone home indicator. -->
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#8FD974">
+<meta name="description" content="Round tracker for the inside game, junk, skins and the random draw. Works with no signal.">
+<link rel="manifest" href="manifest.webmanifest">
+<!-- iOS ignores the manifest for these two, so they are declared separately -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mixed Up">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<style>*{-webkit-text-size-adjust:100%;}html,body{margin:0;padding:0;}</style>
+<title>Mixed Up Golf</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&display=swap">
+
+<style>
+  :root{
+    /* ground + rules, matched to the 4Score app this replaces */
+    --ground:#0D0D0D;
+    --row:#151515;
+    --row-2:#1C1C1C;
+    --line:#2C2C2C;
+    --line-soft:#232323;
+
+    --ink:#FFFFFF;
+    --ink-2:#B4B4B4;
+    --ink-3:#8E8E8E;
+
+    /* the 4Score bar green, and black-on-green */
+    --bar:#8FD974;
+    --bar-ink:#0C1607;
+    --bar-dim:#5E9B48;
+
+    /* the two meaningful-number colors from the app */
+    --live:#4CD137;
+    --gold:#F5D547;
+
+    --f-sans:"Barlow",system-ui,-apple-system,sans-serif;
+    --f-cond:"Barlow Condensed","Barlow",system-ui,sans-serif;
+  }
+
+  *{box-sizing:border-box;}
+
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:var(--ground);
+    color:var(--ink);
+    font-family:var(--f-sans);
+    -webkit-font-smoothing:antialiased;
+    -webkit-tap-highlight-color:transparent;
+  }
+
+  .stage{height:100dvh;background:var(--ground);}
+  .device{height:100%;background:var(--ground);}
+  .screen{height:100%;display:flex;flex-direction:column;background:var(--ground);overflow:hidden;position:relative;}
+  .island,.statusbar,.homebar{display:none;}
+
+  /* ---------- green app bar ---------- */
+  .appbar{
+    flex-shrink:0;
+    background:var(--bar);
+    color:var(--bar-ink);
+    display:flex;align-items:center;justify-content:space-between;
+    padding:0 16px;
+    height:60px;
+    background-image:linear-gradient(180deg,rgba(255,255,255,.20),rgba(0,0,0,.10));
+    box-shadow:0 3px 14px -4px rgba(0,0,0,.85);
+    position:relative;z-index:2;
+  }
+  .brand{
+    font-family:var(--f-cond);
+    font-size:19px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+    white-space:nowrap;line-height:1;
+  }
+  .brandwrap{display:flex;flex-direction:column;gap:2px;min-width:0;flex-shrink:0;}
+  .brand2{
+    font-family:var(--f-cond);
+    font-size:19px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+    line-height:1;
+  }
+  /* top of the app = set once, before the round */
+  .setupbtns{display:flex;gap:6px;flex-shrink:0;}
+  .setupbtn{
+    font-family:var(--f-cond);
+    font-size:14px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+    padding:8px 11px;
+    border:2px solid var(--bar-ink);
+    border-radius:8px;
+    background:transparent;color:var(--bar-ink);
+    opacity:.6;cursor:pointer;
+  }
+  .setupbtn[aria-selected="true"]{background:var(--bar-ink);color:var(--bar);opacity:1;}
+
+  .ninetoggle{display:flex;gap:0;border:2px solid var(--line);border-radius:8px;overflow:hidden;flex-shrink:0;}
+  .ninebtn{
+    font-family:var(--f-cond);
+    font-size:14px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+    padding:8px 13px;
+    border:0;background:var(--row-2);color:var(--ink-3);
+    opacity:.55;cursor:pointer;
+    line-height:1.15;
+    position:relative;
+  }
+  .ninebtn[aria-pressed="true"]{background:var(--bar);color:var(--bar-ink);opacity:1;}
+  /* a dot marks a nine that is already fully entered */
+  .ninebtn.filled::after{
+    content:"";position:absolute;top:4px;right:5px;
+    width:6px;height:6px;border-radius:50%;
+    background:currentColor;
+  }
+
+  #errbar{
+    display:none;
+    background:#5A1414;color:#FFD9D9;
+    padding:9px 14px;font-size:13px;line-height:1.4;
+    border-bottom:1px solid #8A2222;
+    word-break:break-word;
+  }
+
+  /* ---------- scroll body ---------- */
+  .scrollarea{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+  .shell{display:flex;flex-direction:column;padding-bottom:calc(14px + env(safe-area-inset-bottom));}
+
+  /* ---------- context row ---------- */
+  .context{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding: 9px 16px;
+    border-bottom:1px solid var(--line);
+    background:var(--row);
+  }
+  .ctx-label{display:flex;flex-direction:column;gap:2px;min-width:0;}
+  .ctx-name{
+    font-size: 19px;font-weight:500;letter-spacing:.01em;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .ctx-sub{
+    font-family:var(--f-cond);
+    font-size:14px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;
+    color:var(--ink-3);
+  }
+  .ctx-nav{display:flex;gap:7px;flex-shrink:0;}
+  .navbtn{
+    width:40px;height:36px;
+    border:1px solid var(--line);
+    background:var(--row-2);
+    color:var(--ink-2);
+    border-radius:6px;
+    font-size:17px;line-height:1;
+    cursor:pointer;
+  }
+  .navbtn:disabled{opacity:.25;cursor:default;}
+
+  .savechip{
+    display:flex;align-items:center;gap:6px;
+    font-family:var(--f-cond);
+    font-size:13px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--live);
+    padding:7px 16px;
+    border-bottom:1px solid var(--line-soft);
+    background:var(--ground);
+  }
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--live);}
+
+  /* ---------- the scorecard grid ---------- */
+  .card{padding:0 0 6px;}
+  .cardhead{
+    display:flex;align-items:baseline;justify-content:space-between;
+    padding: 6px 16px 5px;
+    font-family:var(--f-cond);
+    font-size:14px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--ink-3);
+  }
+  .grid{padding:0 10px;}
+  .row{display:grid;grid-template-columns:repeat(9,1fr) 1.3fr;gap:0;}
+  .hnum{
+    font-family:var(--f-cond);
+    font-size:14px;font-weight:600;
+    text-align:center;color:var(--ink-3);
+    padding:5px 0;
+    border-right:1px solid var(--line-soft);
+    font-variant-numeric:tabular-nums;
+  }
+  .hnum:last-child{border-right:0;color:var(--ink-2);letter-spacing:.07em;}
+  .cell{
+    font-family:var(--f-sans);
+    font-size:21px;font-weight:500;
+    font-variant-numeric:tabular-nums;
+    height:52px;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--row);
+    border:1px solid var(--line-soft);
+    border-right-width:0;
+    color:var(--ink);
+    cursor:pointer;
+    padding:0;
+  }
+  .cell:last-of-type{border-right-width:1px;}
+  .cell.empty{color:#4E4E4E;}
+  .cell.next{background:var(--row-2);box-shadow:inset 0 -3px 0 var(--bar);}
+  .cell.armed{background:#2A2612;color:var(--gold);box-shadow:inset 0 0 0 1.5px var(--gold);}
+
+  .cell{transition:background .12s ease, color .12s ease, box-shadow .12s ease;}
+  @keyframes land{from{transform:scale(.7);opacity:0;}to{transform:scale(1);opacity:1;}}
+  .cell.landed{animation:land .17s cubic-bezier(.2,1.5,.4,1);}
+  @keyframes pop{0%{transform:scale(1);}42%{transform:scale(1.14);}100%{transform:scale(1);}}
+  .total.pop{animation:pop .34s cubic-bezier(.2,1.4,.4,1);}
+  .grid{position:relative;padding-bottom:2px;}
+  .grid::after{
+    content:"";position:absolute;left:10px;right:10px;bottom:0;height:2px;
+    background:var(--bar);transform:scaleX(0);transform-origin:left;
+    transition:transform .36s cubic-bezier(.4,0,.2,1);
+  }
+  .grid.complete::after{transform:scaleX(1);}
+  .total{
+    font-family:var(--f-sans);
+    font-size:21px;font-weight:700;
+    font-variant-numeric:tabular-nums;
+    height:52px;
+    display:flex;align-items:center;justify-content:center;
+    border:1px solid var(--line-soft);
+    background:var(--row-2);
+    color:var(--ink-3);
+  }
+  .total.done{background:#0F2409;border-color:var(--bar-dim);color:var(--live);}
+
+  .hint{
+    padding: 8px 16px 0;
+    font-size:14px;color:var(--ink-3);line-height:1.5;
+  }
+  .hint b{color:var(--ink-2);font-weight:500;}
+  .savedot{
+    font-style:normal;color:var(--live);
+    font-size:12px;letter-spacing:.1em;
+    margin-left:6px;
+  }
+  .savedot::before{content:"• ";}
+
+  /* ---------- the "next chunk" action, shown once a nine is complete ---------- */
+  .nextwrap{padding:12px 12px 0;}
+  .nextbtn{
+    width:100%;
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:15px 16px;
+    border:0;border-radius:9px;
+    background:var(--bar);
+    background-image:linear-gradient(180deg,rgba(255,255,255,.20),rgba(0,0,0,.08));
+    color:var(--bar-ink);
+    font-family:var(--f-cond);
+    font-size:17px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    cursor:pointer;
+    box-shadow:0 4px 16px -6px rgba(143,217,116,.7);
+  }
+  .nextbtn .tot{
+    font-family:var(--f-sans);
+    font-size:15px;font-weight:600;letter-spacing:.02em;text-transform:none;
+    opacity:.66;
+  }
+  .donechip{
+    text-align:center;padding:11px 12px;
+    font-family:var(--f-cond);
+    font-size:15px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--live);
+  }
+  .donechip::before{content:"✓  ";}
+  @keyframes rise{from{transform:translateY(7px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+  .nextbtn{animation:rise .2s ease;}
+
+  /* ---------- sub-tabs inside Course Info ---------- */
+  .subtabs{
+    display:none;
+    grid-template-columns:1fr 1fr;gap:0;
+    background:var(--ground);
+    border-bottom:1px solid var(--line);
+  }
+  .subtabs.on{display:grid;}
+  .subtab{
+    border:0;background:transparent;cursor:pointer;
+    font-family:var(--f-cond);
+    font-size:16px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;
+    color:var(--ink-3);
+    padding:11px 6px 9px;
+    border-bottom:3px solid transparent;
+  }
+  .subtab[aria-selected="true"]{color:var(--bar);border-bottom-color:var(--bar);}
+
+  /* ---------- players ---------- */
+  .players{display:none;}
+  .players.on{display:block;}
+  .pteam{
+    font-family:var(--f-cond);
+    font-size:14px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--ink-3);
+    padding:12px 16px 6px;
+  }
+  .prow{
+    display:grid;grid-template-columns:26px 1fr 84px;align-items:center;gap:10px;
+    padding: 6px 16px;
+    background:var(--row);
+    border-top:1px solid var(--line-soft);
+  }
+  .pslot{
+    font-family:var(--f-sans);
+    font-size:16px;font-weight:700;color:var(--ink-3);text-align:center;
+    font-variant-numeric:tabular-nums;
+  }
+  .pin{
+    font-family:var(--f-sans);
+    font-size:18px;font-weight:500;
+    background:var(--ground);
+    border:1px solid var(--line);
+    border-radius:7px;
+    color:var(--ink);
+    padding:9px 12px;
+    width:100%;
+    min-width:0;
+  }
+  .pin::placeholder{color:#5A5A5A;}
+  .pin.hcp{text-align:center;font-variant-numeric:tabular-nums;font-weight:600;}
+  .pin:focus{border-color:var(--bar);outline:none;}
+  .phead{
+    display:grid;grid-template-columns:26px 1fr 84px;gap:10px;
+    padding:0 16px 6px;
+    font-family:var(--f-cond);
+    font-size:13px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--ink-3);
+  }
+  .phead span:last-child{text-align:center;}
+
+  /* ---------- holes: the whole card, review only ---------- */
+  .holes{display:none;}
+  .holes.on{display:block;}
+  .hscroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .hplain{overflow:visible;}
+  /* the fixed-width grid needs no sticky anything */
+  table.hgrid.big th{position:static;}
+  table.hgrid.big .hcol{position:static;}
+  table.hgrid{border-collapse:collapse;width:100%;min-width:100%;}
+  table.hgrid th,table.hgrid td{
+    font-variant-numeric:tabular-nums;
+    text-align:center;
+    padding:9px 4px;
+    border-bottom:1px solid var(--line-soft);
+    border-right:1px solid var(--line-soft);
+    white-space:nowrap;
+  }
+  table.hgrid th{
+    font-family:var(--f-cond);
+    font-size:14px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+    color:var(--ink-2);
+    background:var(--row-2);
+    position:sticky;top:0;z-index:2;
+  }
+  table.hgrid td{font-size:18px;font-weight:500;color:var(--ink);background:var(--ground);}
+  table.hgrid .hcol{
+    position:sticky;left:0;z-index:1;
+    background:var(--row);
+    font-family:var(--f-cond);
+    font-size:15px;font-weight:700;
+    color:var(--ink-2);
+    min-width:52px;
+  }
+  table.hgrid th.hcol{z-index:3;background:var(--row-2);}
+  table.hgrid tr.sub td,table.hgrid tr.sub .hcol{
+    background:var(--row-2);
+    font-weight:700;color:var(--live);
+    font-family:var(--f-cond);font-size:16px;letter-spacing:.05em;
+  }
+  table.hgrid td.par{color:var(--ink-3);font-size:15px;}
+  table.hgrid tr.parrow td,table.hgrid tr.parrow .hcol{background:var(--row);}
+  table.hgrid td.miss{color:#4E4E4E;}
+  table.hgrid td.si{color:var(--ink-3);font-size:14px;}
+  /* the two sides, exactly as 4Score shows them */
+  table.hgrid td.won12{color:var(--live);font-weight:700;}
+  table.hgrid td.won34{color:var(--gold);font-weight:700;}
+  table.hgrid td.pt{
+    font-family:var(--f-cond);
+    font-size:14px;font-weight:700;letter-spacing:.06em;
+    color:var(--ink-3);
+    min-width:44px;
+  }
+  table.hgrid td.pt.won12{color:var(--live);}
+  table.hgrid td.pt.won34{color:var(--gold);}
+
+  /* running standing */
+  .standing{
+    display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;
+    padding:14px 16px;background:var(--row);
+    border-top:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft);
+  }
+  .sideBox{
+    display:flex;flex-direction:column;gap:2px;
+    font-size:14px;color:var(--ink-2);line-height:1.25;
+  }
+  .sideBox span{
+    font-size:32px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1;
+  }
+  .sideBox.s12 span{color:var(--live);}
+  .sideBox.s34{text-align:right;}
+  .sideBox.s34 span{color:var(--gold);}
+  .halved{
+    text-align:center;font-size:13px;color:var(--ink-3);
+    font-family:var(--f-cond);letter-spacing:.1em;text-transform:uppercase;
+    display:flex;flex-direction:column;gap:1px;
+  }
+  .halved span{font-size:20px;font-weight:700;color:var(--ink-2);font-family:var(--f-sans);letter-spacing:0;}
+
+  .popchips{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;padding:4px 16px 10px;}
+  .popchip{
+    background:var(--row);border:1px solid var(--line-soft);border-radius:8px;
+    padding:9px 4px;text-align:center;
+    font-size:13px;color:var(--ink-3);line-height:1.3;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .popchip span{display:block;font-size:24px;font-weight:700;color:var(--bar);font-variant-numeric:tabular-nums;}
+  table.hgrid td.zero{color:#4A4A4A;}
+  table.hgrid td.one{color:var(--ink);}
+  table.hgrid td.two{color:var(--bar);font-weight:700;}
+
+  table.hgrid tr.taprow{cursor:pointer;}
+  table.hgrid tr.taprow:active td{background:var(--row-2);}
+
+  /* ---------- holes: stripped to the grid ----------
+     Fixed column widths so rows never change width as scores land. */
+  /* ---------- holes grid: CSS Grid, not a table ----------
+     Every row uses the identical column template, so columns line up and row
+     widths are fixed by construction. Table cells could split and drift; grid
+     cells cannot. */
+  .hx{display:flex;flex-direction:column;}
+  .hxrow{
+    display:grid;
+    grid-template-columns:64px repeat(4,1fr);
+    border-bottom:1px solid var(--line-soft);
+  }
+  .hxc{
+    min-width:0;
+    display:flex;align-items:center;justify-content:center;
+    border-right:1px solid var(--line-soft);
+    padding:0 2px;
+    overflow:hidden;
+  }
+  .hxc:last-child{border-right:0;}
+
+  .hxhead{background:var(--row-2);border-bottom:1px solid var(--line);}
+  .hxhead .hxc{
+    height:38px;
+    font-family:var(--f-cond);
+    font-size:14px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+    color:var(--ink-2);
+    white-space:nowrap;
+  }
+  /* the (n) beside each name is that player's pops off the low man —
+     the number the hole result is decided on */
+  .hxhead .hxc i{
+    font-style:normal;font-family:var(--f-sans);
+    font-size:12px;font-weight:700;letter-spacing:0;
+    margin-left:3px;
+  }
+  .hxhead .hxc.s12 i{color:var(--live);}
+  .hxhead .hxc.s34 i{color:var(--gold);}
+  /* a hairline under each name shows which side that column belongs to */
+  .hxhead .hxc.s12{box-shadow:inset 0 -3px 0 rgba(76,209,55,.55);}
+  .hxhead .hxc.s34{box-shadow:inset 0 -3px 0 rgba(245,213,71,.55);}
+
+  .hxrow .hnum{
+    flex-direction:column;justify-content:center;gap:0;
+    background:var(--row);
+    line-height:1.05;
+  }
+  .hxrow .hnum b{font-size:19px;font-weight:700;color:var(--ink-2);}
+  .hxrow .hnum i{
+    font-style:normal;font-family:var(--f-cond);
+    font-size:12px;font-weight:600;color:#6E6E6E;white-space:nowrap;
+  }
+
+  .hxrow .sc{
+    height:46px;
+    font-size:23px;font-weight:500;
+    font-variant-numeric:tabular-nums;
+    color:var(--ink);
+    position:relative;
+  }
+  .hxrow .sc.miss{color:#4E4E4E;}
+  .hxrow .sc.won12{color:var(--live);font-weight:700;}
+  .hxrow .sc.won34{color:var(--gold);font-weight:700;}
+
+  /* Pops are marked on the cell they apply to, in a DIFFERENT visual channel
+     from who won the hole:
+        hue (green / gold on the number) = who won
+        white badge + lifted cell        = shots given on this hole
+     Never tint a pop green or gold, or it reads as a side.
+     A count, not dots — two shots is common (any pops total over 18) and dots
+     were far too small to read on a fairway. */
+  /* One shot: a white clipped corner. Two shots: a bigger corner in ice blue —
+     deliberately neither green nor gold, so it can never read as a side. */
+  .hxrow .sc.pop{ background:rgba(255,255,255,.07); }
+  .hxrow .sc.pop::after{
+    content:"";
+    position:absolute;top:0;left:0;
+    width:13px;height:13px;
+    background:#FFFFFF;
+    clip-path:polygon(0 0, 100% 0, 0 100%);
+  }
+  /* two shots: same size clip, pink so it jumps. Pink is neither green nor
+     gold, so it can never read as a side. */
+  .hxrow .sc.pop2{ background:rgba(255,92,160,.13); }
+  .hxrow .sc.pop2::after{ background:#FF5CA0; }
+
+  /* Out / In / Total: same size as the score rows, WHITE — green and gold are
+     reserved for holes won. White rules top and bottom set them apart. */
+  .hxsub{
+    background:var(--row-2);
+    border-top:2px solid #FFFFFF;
+    border-bottom:2px solid #FFFFFF;
+  }
+  .hxsub .hxc{
+    height:46px;
+    font-size:23px;font-weight:500;
+    font-variant-numeric:tabular-nums;
+    color:#FFFFFF;
+    background:var(--row-2);
+  }
+  .hxsub .hnum b{
+    font-family:var(--f-cond);
+    font-size:17px;font-weight:700;letter-spacing:.06em;color:#FFFFFF;
+  }
+  /* the segment tally is the exception — it wears the winning side's colour */
+  .hxsub .hnum i{font-size:14px;font-weight:700;font-family:var(--f-sans);}
+  .hxsub .hnum.t12 i{color:var(--live);}
+  .hxsub .hnum.t34 i{color:var(--gold);}
+  .hxsub .hnum.tAS i{color:var(--ink-2);}
+
+  .hxtap{cursor:pointer;}
+  .hxtap:active .hxc{background:var(--row-2);}
+  table.hgrid.big td.hcol{
+    padding:3px 2px;line-height:1.05;
+    font-family:var(--f-sans);
+  }
+  table.hgrid.big td.hcol b{
+    display:block;font-size:19px;font-weight:700;color:var(--ink-2);
+  }
+  table.hgrid.big td.hcol i{
+    display:block;font-style:normal;
+    font-family:var(--f-cond);
+    font-size:12px;font-weight:600;letter-spacing:.03em;
+    color:#6E6E6E;white-space:nowrap;
+  }
+
+  .needstrip{
+    padding:11px 16px;background:var(--row);
+    border-bottom:1px solid var(--line);
+    font-size:15px;color:var(--gold);
+  }
+
+  /* ---------- new round sheet ---------- */
+  .newbtn{border-style:dashed;}
+  .sheetwrap{position:absolute;inset:0;z-index:20;display:flex;align-items:flex-end;}
+  .sheetwrap[hidden]{display:none;}
+  .sheetbg{position:absolute;inset:0;background:rgba(0,0,0,.72);}
+  .sheet{
+    position:relative;width:100%;
+    background:var(--row);
+    border-top:1px solid var(--line);
+    border-radius:16px 16px 0 0;
+    padding:18px 14px calc(14px + env(safe-area-inset-bottom));
+    display:flex;flex-direction:column;gap:8px;
+    max-height:100%;overflow-y:auto;
+  }
+  .sheettitle{
+    font-family:var(--f-cond);
+    font-size:22px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+    padding:0 4px;
+  }
+  .sheetsub{font-size:14px;color:var(--ink-3);padding:0 4px 6px;}
+  .sheetbtn{
+    text-align:left;width:100%;
+    display:flex;flex-direction:column;gap:2px;
+    padding:13px 15px;
+    border:1px solid var(--line);border-radius:10px;
+    background:var(--row-2);color:var(--ink);cursor:pointer;
+  }
+  .sheetbtn strong{
+    font-family:var(--f-cond);
+    font-size:17px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+    color:var(--bar);
+  }
+  .sheetbtn span{font-size:14px;color:var(--ink-3);line-height:1.4;}
+  .sheetbtn.danger strong{color:#FF6B5A;}
+  .sheetbtn.ccw strong{color:var(--bar);}
+  .sheetbtn.demo strong{color:var(--gold);}
+  .sheetcancel{
+    margin-top:4px;padding:14px;
+    border:0;border-radius:10px;background:transparent;
+    color:var(--ink-2);
+    font-family:var(--f-cond);
+    font-size:17px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    cursor:pointer;
+  }
+
+  /* ---------- one hole, one screen ---------- */
+  .hole{display:none;}
+  .hole.on{display:block;}
+  .hehead{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:4px 12px 0;}
+  .henav{
+    width: 44px;height:42px;border-radius:9px;
+    border:1px solid var(--line);background:var(--row-2);color:var(--ink-2);
+    font-size:24px;line-height:1;cursor:pointer;flex-shrink:0;
+  }
+  .henav:disabled{opacity:.22;cursor:default;}
+  .hemid{text-align:center;flex:1;min-width:0;}
+  .henum{font-size:32px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;}
+  .hemeta{
+    font-family:var(--f-cond);
+    font-size:13px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;
+    color:var(--ink-3);margin-top:2px;
+  }
+  .heband{
+    margin:6px 12px 0;padding:6px 10px;border-radius:8px;text-align:center;
+    font-family:var(--f-cond);
+    font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+    background:var(--row-2);color:var(--ink-3);
+    border:1px solid var(--line-soft);
+  }
+  .heband.w12{background:#0F2409;color:var(--live);border-color:var(--bar-dim);}
+  .heband.w34{background:#2A2612;color:var(--gold);border-color:#6B5A18;}
+
+  .hescores{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;padding:7px 12px 0;}
+  .hecell{
+    display:flex;flex-direction:column;align-items:center;gap:1px;
+    padding:5px 2px 6px;
+    border:1px solid var(--line);border-radius:9px;
+    background:var(--row);color:var(--ink);cursor:pointer;
+    min-width:0;
+  }
+  .hecell em{
+    font-style:normal;font-family:var(--f-cond);
+    font-size:13px;font-weight:600;letter-spacing:.04em;
+    color:var(--ink-3);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;
+  }
+  .hecell em b{color:var(--bar);letter-spacing:-1px;}
+  .hecell span{font-size:25px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.05;}
+  .hecell.empty span{color:#4E4E4E;}
+  .hecell.sel{border-color:var(--bar);box-shadow:inset 0 -3px 0 var(--bar);background:var(--row-2);}
+  .hecell.won12 span{color:var(--live);}
+  .hecell.won34 span{color:var(--gold);}
+
+  .hepadwrap{padding:7px 12px 0;}
+  .pad.hepad .key{height:43px;font-size:21px;}
+  .pad.hepad{gap:6px;}
+
+  .junkgrid{padding:8px 12px 0;display:flex;flex-direction:column;gap:4px;}
+  .junkrow{display:grid;grid-template-columns:70px repeat(4,1fr);gap:4px;align-items:center;}
+  .junklbl{
+    font-family:var(--f-cond);
+    font-size:14px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--ink-3);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .junkhdr .junklbl{font-size:13px;text-align:center;color:var(--ink-2);}
+  .junkhdr .junklbl:first-child{text-align:left;}
+  .junkbtn{
+    position:relative;
+    height: 32px;border-radius:7px;
+    border:1px solid var(--line);background:var(--row);color:#5A5A5A;
+    font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;cursor:pointer;
+    padding:0;
+  }
+  .junkbtn span{display:block;line-height:30px;}
+  .junkbtn em{
+    position:absolute;top:1px;right:3px;
+    font-style:normal;font-size:10px;font-weight:700;
+    color:var(--bar-ink);opacity:.7;
+  }
+  .junkbtn.on{background:var(--bar);border-color:var(--bar);color:var(--bar-ink);font-weight:700;}
+  .junkbtn.on em{color:var(--bar-ink);opacity:.6;}
+
+  .greenies{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:7px 12px calc(10px + env(safe-area-inset-bottom));}
+  .gstep{
+    background:var(--row);border:1px solid var(--line-soft);border-radius:9px;
+    padding:7px 8px;display:flex;flex-direction:column;gap:4px;min-width:0;
+  }
+  .gtitle{display:flex;flex-direction:column;gap:0;min-width:0;}
+  .gtitle strong{
+    font-family:var(--f-cond);font-size:14px;font-weight:700;letter-spacing:.1em;
+  }
+  .gtitle strong i{font-style:normal;font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--bar);}
+  .gstep.s12 .gtitle strong{color:var(--live);}
+  .gstep.s34 .gtitle strong{color:var(--gold);}
+  .gtitle span{
+    font-size:12px;color:var(--ink-3);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .gctl{display:grid;grid-template-columns:36px 1fr 36px;align-items:center;gap:4px;}
+  .gbtn{
+    height: 32px;border-radius:7px;border:1px solid var(--line);
+    background:var(--row-2);color:var(--ink);font-size:19px;line-height:1;cursor:pointer;
+  }
+  .gval.here{color:var(--bar);}
+  .gval{
+    text-align:center;font-size:21px;font-weight:700;font-variant-numeric:tabular-nums;
+  }
+
+  /* ---------- random draw ---------- */
+  .drawwrap{padding:10px 12px 4px;}
+  /* One draw, no redraw — a re-roll button would let whoever holds the phone
+     draw again until the result suits them. */
+  .drawbtn{
+    width:100%;padding:14px;border-radius:9px;cursor:pointer;
+    font-family:var(--f-cond);
+    font-size:16px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
+  }
+  .drawbtn{border:0;background:var(--bar);color:var(--bar-ink);}
+  .drawsub{
+    padding:14px 16px 6px;
+    font-family:var(--f-cond);
+    font-size:14px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;
+    color:var(--ink-3);
+  }
+  .drawrow{
+    display:grid;grid-template-columns:26px 1fr 64px;align-items:center;
+    padding:11px 16px;
+    background:var(--row);
+    border-top:1px solid var(--line-soft);
+    font-variant-numeric:tabular-nums;
+  }
+  .drawrow .dr{
+    font-family:var(--f-cond);
+    font-size:15px;font-weight:700;color:var(--ink-3);
+  }
+  .drawrow .dn{
+    font-size:16px;color:var(--ink);min-width:0;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .drawrow .dnet{text-align:center;font-size:21px;font-weight:700;color:var(--ink);}
+  .drawrow.win{background:#0F2409;}
+  .tietag{
+    font-style:normal;font-family:var(--f-cond);
+    font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--gold);margin-left:7px;
+  }
+  .drawrow.win .dr,.drawrow.win .dn,.drawrow.win .dnet{color:var(--live);font-weight:700;}
+
+  /* Ernie — Kyle's logo, from ernie.ico.
+     NO filter. Decoding the pixels settled it: the artwork is a WHITE FILL with
+     BLACK outlines on a TRANSPARENT background (4768 of 16384 sampled pixels
+     opaque; of those, 3146 near-white and 1193 dark). So it already reads as a
+     white Ernie on the dark ground. invert() did nothing useful, and
+     brightness(0)+invert painted the fill and the linework the same white —
+     the blob. Leave it alone.
+     The crop trims the long neck stroke, keeping a stub. */
+  .ernie{display:flex;justify-content:center;padding:10px 0 4px;}
+  .ernie .head{
+    width:58px;height:55px;
+    overflow:hidden;
+    display:block;
+  }
+  .ernie img{
+    width:58px;height:auto;display:block;
+    opacity:.9;
+  }
+
+  /* ---------- results ---------- */
+  .results{display:none;padding:4px 0 10px;}
+  .results.on{display:block;}
+  .rsec{
+    font-family:var(--f-cond);
+    font-size:14px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--ink-3);
+    padding:16px 16px 8px;
+  }
+  .missing{
+    display:flex;flex-direction:column;gap:0;
+    margin:6px 12px 0;border:1px solid var(--line-soft);border-radius:8px;overflow:hidden;
+  }
+  .miss{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:11px 14px;background:var(--row);
+    border-bottom:1px solid var(--line-soft);
+    font-size:15px;color:var(--ink-2);cursor:pointer;text-align:left;border-left:0;border-right:0;border-top:0;
+    width:100%;
+  }
+  .miss:last-child{border-bottom:0;}
+  .miss em{font-style:normal;font-family:var(--f-cond);font-size:14px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);}
+
+  .teamrow{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:15px 16px;
+    background:var(--row);
+    border-top:1px solid var(--line-soft);
+  }
+  .teamrow.win{background:#0F2409;}
+  .tname{display:flex;flex-direction:column;gap:3px;min-width:0;}
+  .tname strong{font-size:19px;font-weight:600;letter-spacing:.01em;}
+  .teamrow.win .tname strong{color:var(--live);}
+  .tname small{font-size:14px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .tscore{
+    font-size:30px;font-weight:700;font-variant-numeric:tabular-nums;
+    color:var(--ink);flex-shrink:0;
+  }
+  .teamrow.win .tscore{color:var(--live);}
+  .winbadge{
+    font-family:var(--f-cond);
+    font-size:13px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;
+    color:var(--bar-ink);background:var(--bar);
+    padding:3px 8px;border-radius:4px;display:inline-block;margin-top:2px;
+  }
+  .skin{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:11px 16px;background:var(--row);border-top:1px solid var(--line-soft);
+    font-size:15px;
+  }
+  .skin .h{font-family:var(--f-cond);font-size:14px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);}
+  .skin .t{font-family:var(--f-cond);font-size:14px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--gold);}
+  .rnote{padding:14px 16px 4px;font-size:15px;color:var(--ink-3);line-height:1.5;}
+  .rnote b{color:var(--ink-2);font-weight:600;}
+
+  /* ---------- keypads ---------- */
+  .padwrap{padding:9px 12px 10px;}
+  .pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  .key{
+    font-family:var(--f-sans);
+    font-size:27px;font-weight:400;
+    font-variant-numeric:tabular-nums;
+    height:62px;
+    border-radius:8px;
+    border:1px solid var(--line);
+    background:var(--row-2);
+    color:var(--ink);
+    cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    transition:background .08s ease, transform .08s ease;
+  }
+  .key:active{background:#2E2E2E;transform:scale(.96);}
+  .key.used{
+    background:var(--ground);
+    color:#5A5A5A;
+    border-color:var(--line-soft);
+    cursor:default;
+  }
+  .key.used:active{transform:none;background:var(--ground);}
+  .key.util{
+    font-family:var(--f-cond);
+    font-size:15px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--ink-2);
+  }
+  .pad.rank .key{height:44px;font-size:21px;}
+  .pad.rank{gap:6px;}
+
+  .padnote{display:none;
+    font-family:var(--f-cond);
+    font-size:13px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--ink-3);
+    text-align:center;
+    padding:10px 16px 18px;
+  }
+
+  /* ---------- green tab bar ---------- */
+  .tabbar{
+    flex-shrink:0;
+    background:var(--bar);
+    background-image:linear-gradient(180deg,rgba(255,255,255,.14),rgba(0,0,0,.08));
+    display:grid;grid-template-columns:repeat(3,1fr);
+    padding: 7px 0 calc(8px + env(safe-area-inset-bottom));
+  }
+  .tab{
+    border:0;background:transparent;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;gap:3px;
+    padding:3px 0;
+    color:var(--bar-ink);
+    opacity:.55;
+  }
+  .tab[aria-selected="true"]{opacity:1;}
+  .tab svg{width:21px;height:21px;display:block;}
+  .tab span{
+    font-family:var(--f-sans);
+    font-size:12px;font-weight:500;letter-spacing:.01em;
+  }
+  .tab[aria-selected="true"] span{font-weight:700;}
+
+  :focus-visible{outline:2px solid var(--bar);outline-offset:-2px;}
+
+  @media (prefers-reduced-motion:reduce){
+    .key,.cell{transition:none;}
+    .key:active{transform:none;}
+    .cell.landed,.total.pop{animation:none;}
+    .grid::after{transition:none;}
+  }
+
+  /* ---------- iPhone frame: desktop only ----------
+     On a real phone every rule here switches off and the app goes full-bleed. */
+  @media (min-width:820px){
+    .stage{
+      height:auto;min-height:100vh;
+      background:#050505;
+      display:flex;align-items:center;justify-content:center;
+      padding:40px 20px;
+    }
+    .device{position:relative;
+      position:relative;
+      width:393px;height:852px;
+      border-radius:56px;
+      padding:11px;
+      background:linear-gradient(155deg,#4A4A4A 0%,#141414 26%,#0A0A0A 60%,#3F3F3F 100%);
+      box-shadow:0 0 0 1px #000, 0 44px 90px -22px rgba(0,0,0,.95);
+      flex-shrink:0;
+    }
+    .screen{border-radius:45px;position:relative;}
+    .island{
+      display:block;
+      position:absolute;top:10px;left:50%;transform:translateX(-50%);
+      width:120px;height:34px;border-radius:20px;background:#000;z-index:5;
+    }
+    .statusbar{
+      display:flex;align-items:center;justify-content:space-between;
+      flex-shrink:0;height:50px;padding:14px 30px 0;
+      font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;
+      color:var(--ink);background:var(--ground);
+      position:relative;z-index:4;
+    }
+    .sb-right{display:flex;align-items:center;gap:7px;}
+    .noservice{
+      font-family:var(--f-cond);
+      font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+      color:var(--gold);
+    }
+    .batt{width:24px;height:12px;border:1.4px solid var(--ink-2);border-radius:3.5px;position:relative;display:inline-block;}
+    .batt::after{content:"";position:absolute;right:-3.6px;top:3.3px;width:2px;height:4.5px;border-radius:0 1px 1px 0;background:var(--ink-2);}
+    .batt i{position:absolute;left:1.4px;top:1.4px;bottom:1.4px;width:64%;border-radius:1.5px;background:var(--ink);}
+    .homebar{
+      display:block;
+      position:absolute;bottom:7px;left:50%;transform:translateX(-50%);
+      width:138px;height:5px;border-radius:3px;background:var(--bar-ink);
+      opacity:.5;z-index:6;
+    }
+    .tabbar{padding-bottom:20px;}
+  }
+</style>
+
+</head>
+<body>
+<div class="stage">
+<div class="device">
+<div class="screen">
+
+  <div class="island"></div>
+  <div class="statusbar">
+    <span>4:47</span>
+    <span class="sb-right">
+      <span class="noservice">No Service</span>
+      <span class="batt"><i></i></span>
+    </span>
+  </div>
+
+  <div class="appbar">
+    <div class="brandwrap">
+      <div class="brand">Mixed Up</div>
+      <div class="brand2">Golf</div>
+    </div>
+    <!-- top = set once, before the round -->
+    <div class="setupbtns">
+      <button class="setupbtn" data-setup="course"  aria-selected="true">Course</button>
+      <button class="setupbtn" data-setup="players" aria-selected="false">Players</button>
+      <button class="setupbtn newbtn" id="newRoundBtn" title="Start a new round">New</button>
+    </div>
+  </div>
+
+  <div class="subtabs" id="subTabs">
+    <button class="subtab" data-sub="pars"  aria-selected="true">Pars</button>
+    <button class="subtab" data-sub="ranks" aria-selected="false">Rankings</button>
+  </div>
+
+  <div id="errbar"></div>
+
+  <div class="scrollarea">
+    <div class="shell">
+
+      <div class="players" id="playersUI"></div>
+      <div class="holes" id="holesUI"></div>
+      <div class="hole"  id="holeUI"></div>
+
+      <div class="context">
+        <div class="ctx-label">
+          <div class="ctx-name" id="ctxName">Course pars</div>
+          <div class="ctx-sub" id="ctxSub">Same pad as scores</div>
+        </div>
+        <div class="ctx-nav" id="ctxNav"></div>
+        <div class="ninetoggle">
+          <button class="ninebtn" data-nine="front" aria-pressed="true">Front 9</button>
+          <button class="ninebtn" data-nine="back"  aria-pressed="false">Back 9</button>
+        </div>
+      </div>
+
+      <div class="savechip"><span class="dot"></span><span id="savetext">Saved on this phone</span></div>
+
+      <div class="card">
+        <div class="cardhead">
+          <span id="cardTitle">Hole</span>
+          <span id="cardCount">0 of 9</span>
+        </div>
+        <div class="grid">
+          <div class="row" id="headRow"></div>
+          <div class="row" id="cellRow"></div>
+        </div>
+        <div class="hint" id="hint"></div>
+      </div>
+
+      <div class="nextwrap" id="nextWrap"></div>
+      <div class="results" id="resultsUI"></div>
+
+      <div class="padwrap" id="padWrap"></div>
+      <div class="padnote" id="padNote"></div>
+
+    </div>
+  </div>
+
+  <div class="tabbar" role="tablist">
+    <button class="tab" role="tab" data-tab="holes" aria-selected="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M3 12h18M3 18h18M9 3v18M15 3v18"/></svg>
+      <span>Holes</span>
+    </button>
+    <button class="tab" role="tab" data-tab="scores" aria-selected="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v14H4z"/><path d="M4 10h16M9 10v9"/></svg>
+      <span>Scores</span>
+    </button>
+    <button class="tab" role="tab" data-tab="results" aria-selected="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21V10M16 21V4M3 21h18"/></svg>
+      <span>Results</span>
+    </button>
+  </div>
+
+  <div class="homebar"></div>
+
+  <!-- New round. Destructive, so it asks first and says exactly what goes. -->
+  <div class="sheetwrap" id="newSheet" hidden>
+    <div class="sheetbg" id="sheetBg"></div>
+    <div class="sheet">
+      <div class="sheettitle">Start a new round</div>
+      <div class="sheetsub">Nothing is kept unless you choose to keep it.</div>
+      <button class="sheetbtn ccw" data-mode="ccw">
+        <strong>Round at CCW</strong>
+        <span>The usual. CCW pars and white-tee rankings, players kept.</span>
+      </button>
+      <button class="sheetbtn" data-mode="same">
+        <strong>Same course again</strong>
+        <span>Clears scores and junk. Keeps whatever course is loaded.</span>
+      </button>
+      <button class="sheetbtn" data-mode="newcourse">
+        <strong>Away course</strong>
+        <span>Blanks the course so you can enter pars and rankings. Players kept.</span>
+      </button>
+      <button class="sheetbtn danger" data-mode="all">
+        <strong>Clear everything</strong>
+        <span>Course, players, scores and junk. Back to empty.</span>
+      </button>
+      <button class="sheetbtn demo" data-mode="demo">
+        <strong>Fill a demo round</strong>
+        <span>Sample course and eight players, for trying the app out.</span>
+      </button>
+      <button class="sheetcancel" id="sheetCancel">Cancel</button>
+    </div>
+  </div>
+
+</div>
+</div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var KEY = "mixedUpGolf.v1";
+  var OLD_KEYS = ["fourScoreAway.mock.v2"];
+  /* Roster: typed on the Players tab, saved like everything else.
+     Seeded with the README's sample team 1 so the mockup has something to score. */
+  /* The app starts empty. Nothing carries over from a previous round unless
+     you deliberately keep it — see New Round. */
+  function defaultRoster(){
+    var r=[];
+    for(var i=0;i<8;i++) r.push({name:"", hcp:""});
+    return r;
+  }
+  /* A COMPLETE round, so Results and the inside game have something to chew on.
+     Team 1 is the real CCW sample from CCW_System_README.md §2.1; team 2 is
+     invented but plausible for the same card. */
+  function demoRoster(){
+    return [
+      {name:"Kyle", hcp:"24"},{name:"Blake",hcp:"7"},
+      {name:"Cody", hcp:"5"}, {name:"Drew", hcp:"16"},
+      {name:"Gary", hcp:"11"},{name:"Pete", hcp:"9"},
+      {name:"Rich", hcp:"18"},{name:"Tom",  hcp:"6"}
+    ];
+  }
+  function demoScores(){
+    var g=[
+      [6,7,4,6,6,5,6,5,6, 6,6,4,5,4,6,5,5,5],  // Kyle   — real CCW card
+      [5,5,3,4,4,4,4,4,5, 4,4,4,5,4,4,5,4,5],  // Dan
+      [5,4,4,5,5,5,4,4,5, 5,4,4,5,4,4,4,5,3],  // Cody   — birdie on 18
+      [7,7,4,5,5,5,5,4,5, 5,6,4,4,4,6,5,5,5],  // Brian
+      [5,5,4,5,5,5,4,4,6, 5,4,4,5,4,5,4,5,5],  // Gary
+      [5,4,4,5,5,4,5,3,6, 4,5,3,5,4,5,5,4,5],  // Pete
+      [6,5,4,6,5,5,6,4,6, 5,6,4,5,4,6,5,5,6],  // Rich
+      [4,5,3,4,4,5,4,3,4, 5,4,4,4,3,5,4,5,5]   // Tom    — birdie on 9
+    ];
+    var s={};
+    for(var i=0;i<8;i++){
+      s[i+"-front"]=g[i].slice(0,9);
+      s[i+"-back"] =g[i].slice(9);
+    }
+    return s;
+  }
+  function demoJunk(){
+    var j=defaultJunk();
+    j[17].b[2]=1;              // Cody's birdie on 18
+    j[8].b[7]=1;               // Tom's birdie on 9
+    j[3].s[0]=1;               // Kyle out of the sand on 4
+    j[10].c[3]=1;              // Drew chips in on 11
+    j[6].c[1]=1;               // Blake chips in on 7
+    j[2].g12=1; j[7].g12=1;    // greenies, 1&2
+    j[13].g34=1;               // greenie, 3&4
+    return j;
+  }
+  function P(i){ return state.roster[i]; }
+  function pname(i){ return (state.roster[i].name||"").trim() || ("Player "+(i+1)); }
+  function phcp(i){ var h=parseInt(state.roster[i].hcp,10); return isNaN(h)?null:h; }
+  function teamOf(i){ return i<4 ? 1 : 2; }
+  /* 4 or 8 players. Derived, not configured: if nobody is named on team 2,
+     it is a four-player round and team 2 simply never appears. */
+  function teamTwoActive(){
+    for(var i=4;i<8;i++){ if((state.roster[i].name||"").trim()) return true; }
+    return false;
+  }
+  function activeCount(){ return teamTwoActive() ? 8 : 4; }
+
+  function rosterReady(){
+    var n=activeCount();
+    for(var i=0;i<n;i++){ if(!(state.roster[i].name||"").trim() || phcp(i)===null) return false; }
+    return true;
+  }
+
+  function blank(){ return [null,null,null,null,null,null,null,null,null]; }
+
+  /* CCW, white tees — verbatim from ScannerBot_CCW.gs (CC_PARS / CC_SI_WHITE).
+     This is the DEFAULT course: most rounds are at CCW, so the app opens ready
+     to play there. "New Round > New course" clears it for an away day. */
+  function ccwPars(){  return {front:[4,4,3,4,4,4,4,3,5],     back:[4,4,3,4,3,4,4,4,4]}; }
+  function ccwRanks(){ return {front:[7,3,15,11,1,13,5,17,9], back:[6,10,18,8,16,2,12,14,4]}; }
+
+  /* Junk is entered BY HAND — Kyle: "No formula will work."
+     Per hole: who got a birdie / chippie / sandie, and how many greenies each
+     side took. Presses are NOT tracked; Kyle keeps those in his head. */
+  function defaultJunk(){
+    var a=[];
+    for(var i=0;i<18;i++) a.push({b:[0,0,0,0], c:[0,0,0,0], s:[0,0,0,0], g12:0, g34:0});
+    return a;
+  }
+
+  var justLanded = -1;   /* cell index to animate on this render */
+  var wasComplete = false;
+
+  var state = {
+    /* A first run opens on Players: CCW is already loaded, so names and
+       handicaps are the only thing missing. A saved round overrides this and
+       reopens on whatever screen it was left on. */
+    step:"players", nine:"front", player:0, armed:null,
+    roster:defaultRoster(),
+    holeIdx:0, holeSel:0, draw:null,
+    junk:defaultJunk(),
+    pars:ccwPars(),
+    ranks:ccwRanks(),
+    scores:{}
+  };
+  for(var i=0;i<8;i++){ state.scores[i+"-front"]=blank(); state.scores[i+"-back"]=blank(); }
+
+  /* ---- auto-save: the real requirement, working. Close the tab and come back. ---- */
+  function save(){
+    try{ localStorage.setItem(KEY, JSON.stringify(state)); }
+    catch(e){ /* private mode or blocked storage — the page still works */ }
+  }
+  function load(){
+    try{
+      var raw = localStorage.getItem(KEY);
+      /* carry over a round saved under the old 4Score name */
+      for(var k=0;!raw && k<OLD_KEYS.length;k++) raw = localStorage.getItem(OLD_KEYS[k]);
+      if(!raw) return;
+      var got = JSON.parse(raw);
+      if(got && got.pars && got.ranks && got.scores){
+        state = got;
+        state.armed = null;
+        if(!state.roster || state.roster.length!==8) state.roster = defaultRoster();
+        if(!state.junk || state.junk.length!==18) state.junk = defaultJunk();
+        if(typeof state.holeIdx!=="number") state.holeIdx=0;
+        state.holeSel=0;
+      }
+    }catch(e){ /* unreadable — start clean */ }
+  }
+
+  function chunkFor(step, nine){
+    if(step==="pars")  return state.pars[nine];
+    if(step==="ranks") return state.ranks[nine];
+    return state.scores[state.player+"-"+nine];
+  }
+  function current(){
+    if(state.step==="pars")  return state.pars[state.nine];
+    if(state.step==="ranks") return state.ranks[state.nine];
+    return state.scores[state.player+"-"+state.nine];
+  }
+  function filled(a){ var n=0,i; for(i=0;i<9;i++){ if(a[i]!==null) n++; } return n; }
+  function nextIdx(a){ for(var i=0;i<9;i++){ if(a[i]===null) return i; } return -1; }
+  function sum(a){ var t=0,i; for(i=0;i<9;i++){ if(a[i]!==null) t+=a[i]; } return t; }
+
+  function usedRanks(){
+    var s={};
+    ["front","back"].forEach(function(n){
+      state.ranks[n].forEach(function(v){ if(v!==null) s[v]=true; });
+    });
+    return s;
+  }
+
+  /* Bottom tabs = during / after the round. Top buttons = set once, before it. */
+  var TAB_OF   = {scores:"scores", holes:"holes", hole:"holes", results:"results"};
+  var SETUP_OF = {pars:"course", ranks:"course", players:"players"};
+
+  function render(){
+    var tab    = TAB_OF[state.step];
+    var setup  = SETUP_OF[state.step];
+    var isEntry= (state.step==="pars"||state.step==="ranks"||state.step==="scores");
+    var isRank = state.step==="ranks";
+    var isCourse=(state.step==="pars"||state.step==="ranks");
+    var base   = state.nine==="front" ? 1 : 10;
+
+    document.querySelectorAll(".tab").forEach(function(b){
+      b.setAttribute("aria-selected", b.dataset.tab===tab ? "true":"false");
+    });
+    document.querySelectorAll(".setupbtn").forEach(function(b){
+      b.setAttribute("aria-selected", b.dataset.setup===setup ? "true":"false");
+    });
+    document.querySelectorAll(".subtab").forEach(function(b){
+      b.setAttribute("aria-selected", b.dataset.sub===state.step ? "true":"false");
+    });
+    document.getElementById("subTabs").classList.toggle("on", isCourse);
+
+    /* show only the screen that belongs to this tab */
+    document.getElementById("playersUI").classList.toggle("on", state.step==="players");
+    document.getElementById("holeUI").classList.toggle("on",    state.step==="hole");
+    document.getElementById("holesUI").classList.toggle("on",   state.step==="holes");
+    document.getElementById("resultsUI").classList.toggle("on", state.step==="results");
+    [".context",".card",".nextwrap",".padwrap",".padnote"].forEach(function(s){
+      document.querySelector(s).style.display = isEntry ? "" : "none";
+    });
+    /* The app saves. It does not need to keep announcing that it saves. */
+    document.querySelector(".savechip").style.display = "none";
+    document.querySelector(".ninetoggle").style.display = isEntry ? "" : "none";
+    /* No screen name in the bar — the tabs already say where you are, and the
+       space is better spent on the second half of the name. */
+
+    if(state.step==="players"){ renderPlayers(); return; }
+    if(state.step==="hole"){    renderHoleEntry(); return; }
+    if(state.step==="holes"){   renderHoles();   return; }
+    if(state.step==="results"){ renderResults(); return; }
+
+    var arr = current();
+    document.querySelectorAll(".ninebtn").forEach(function(b){
+      b.classList.toggle("filled", isEntry && chunkDone(chunkFor(state.step, b.dataset.nine)));
+      b.setAttribute("aria-pressed", b.dataset.nine===state.nine ? "true":"false");
+    });
+
+    var name=document.getElementById("ctxName"),
+        sub =document.getElementById("ctxSub"),
+        nav =document.getElementById("ctxNav");
+    nav.innerHTML="";
+    if(state.step==="scores"){
+      
+      name.textContent=pname(state.player)+" — "+(state.nine==="front"?"Front 9":"Back 9");
+      var f=chunkDone(state.scores[state.player+"-front"]),
+          bk=chunkDone(state.scores[state.player+"-back"]);
+      sub.textContent="Team "+teamOf(state.player)+" · player "+(state.player+1)
+        +" of "+activeCount()+" · "
+        +(f&&bk ? "both nines in" : f ? "front 9 in" : bk ? "back 9 in" : "nothing entered yet");
+      nav.appendChild(mkNav("‹", state.player===0, function(){ state.player--; state.armed=null; render(); }));
+      nav.appendChild(mkNav("›", state.player>=activeCount()-1, function(){ state.player++; state.armed=null; render(); }));
+    }else if(state.step==="pars"){
+      name.textContent="Course pars — "+(state.nine==="front"?"Front 9":"Back 9");
+      sub.textContent="";
+    }else{
+      name.textContent="Hole rankings — "+(state.nine==="front"?"Front 9":"Back 9");
+      sub.textContent="";
+    }
+
+    document.getElementById("cardTitle").textContent = isRank ? "Hole · ranking" : "Hole";
+    document.getElementById("cardCount").textContent = filled(arr)+" of 9";
+
+    var head=document.getElementById("headRow"); head.innerHTML="";
+    for(var h=0;h<9;h++){
+      var d=document.createElement("div"); d.className="hnum"; d.textContent=base+h; head.appendChild(d);
+    }
+    var o=document.createElement("div"); o.className="hnum";
+    o.textContent = isRank ? "Set" : "Tot";
+    head.appendChild(o);
+
+    var row=document.getElementById("cellRow"); row.innerHTML="";
+    var nx=nextIdx(arr);
+    for(var c=0;c<9;c++){
+      (function(idx){
+        var b=document.createElement("button"), v=arr[idx];
+        b.className="cell"+(v===null?" empty":"")
+                   +(idx===nx&&state.armed===null?" next":"")
+                   +(state.armed===idx?" armed":"")
+                   +(idx===justLanded?" landed":"");
+        b.textContent = v===null ? "·" : v;
+        b.onclick=function(){
+          if(arr[idx]===null) state.armed=null;
+          else state.armed = (state.armed===idx) ? null : idx;
+          render();
+        };
+        row.appendChild(b);
+      })(c);
+    }
+    var done = filled(arr)===9;
+    var tot=document.createElement("div");
+    tot.className="total"+(done?" done":"")+((done&&!wasComplete)?" pop":"");
+    tot.textContent = isRank ? (filled(arr)+"/9") : sum(arr);
+    row.appendChild(tot);
+
+    document.querySelector(".grid").classList.toggle("complete", done);
+    wasComplete = done;
+    justLanded = -1;
+
+    var hint=document.getElementById("hint");
+    if(state.armed!==null){
+      hint.innerHTML="";
+    }else if(isRank){
+      hint.innerHTML="";
+    }else if(filled(arr)===9){
+      hint.innerHTML="Total <b>"+sum(arr)+"</b>";
+    }else{
+      hint.innerHTML="";
+    }
+
+    renderNext(done, arr, isRank);
+
+    renderPad(isRank, arr);
+    document.getElementById("padNote").textContent = "";
+  }
+
+  /* Where the next tap should take you. The whole session is 20 chunks in a
+     known order, so the app walks it — you never hunt for the next one. */
+  function nextTarget(){
+    if(state.step==="pars")
+      return state.nine==="front"
+        ? {step:"pars", nine:"back",  label:"Pars · Back 9"}
+        : {step:"ranks",nine:"front", label:"Rankings · Front 9"};
+    /* Setup ends when the course is in. Where you go next depends on whether
+       you are about to play or typing up a finished card — not our call. */
+    if(state.step==="ranks")
+      return state.nine==="front"
+        ? {step:"ranks", nine:"back", label:"Rankings · Back 9"}
+        : null;
+    if(state.nine==="front")
+      return {step:"scores",nine:"back",player:state.player,
+              label:pname(state.player)+" · Back 9"};
+    if(state.player<activeCount()-1)
+      return {step:"scores",nine:"front",player:state.player+1,
+              label:pname(state.player+1)+" · Front 9"};
+    return null;
+  }
+
+  function renderNext(done, arr, isRank){
+    var w=document.getElementById("nextWrap");
+    w.innerHTML="";
+    if(!done) return;
+
+    var t=nextTarget();
+
+    /* Nothing further to walk to — say so quietly, don't shout a green
+       call-to-action at a step the app shouldn't be choosing. */
+    if(!t){
+      var done=document.createElement("div");
+      done.className="donechip";
+      done.textContent = state.step==="ranks" ? "Course set"
+                       : state.step==="pars"  ? "Pars set"
+                       : "All scores in";
+      w.appendChild(done);
+      return;
+    }
+
+    var b=document.createElement("button");
+    b.className="nextbtn";
+
+    var lead=document.createElement("span");
+    lead.textContent = "Next: "+t.label;
+
+    var tot=document.createElement("span");
+    tot.className="tot";
+    tot.textContent = isRank ? "9 of 9 set" : "Total "+sum(arr);
+
+    b.appendChild(lead); b.appendChild(tot);
+    b.onclick=function(){
+      state.step=t.step; if(t.nine) state.nine=t.nine;
+      if(typeof t.player==="number") state.player=t.player;
+      state.armed=null; wasComplete=false;
+      save(); render();
+      document.querySelector(".scrollarea").scrollTop=0;
+    };
+    w.appendChild(b);
+  }
+
+  /* ---------------------------------------------------------------
+     Scoring, ported verbatim from ccw_golf_photo.jsx. The only change
+     is that pars and rankings come from what was typed in, instead of
+     from the hardcoded CCW constants.
+     --------------------------------------------------------------- */
+  function full(o){ return o.front.concat(o.back); }
+  function playerScores(i){ return state.scores[i+"-front"].concat(state.scores[i+"-back"]); }
+  function chunkDone(a){ return filled(a)===9; }
+
+  function strokesFor(hcp, hdcp){
+    return Math.floor(hcp/18) + (hdcp <= hcp%18 ? 1 : 0);
+  }
+  function netOf(i, ranks){
+    var sc=playerScores(i);
+    return sc.map(function(g,h){ return g - strokesFor(phcp(i), ranks[h]); });
+  }
+  function twoBestBallNet(idxs, ranks){
+    var nets=idxs.map(function(i){ return netOf(i,ranks); }), t=0;
+    for(var h=0;h<18;h++){
+      var col=nets.map(function(n){ return n[h]; }).sort(function(a,b){ return a-b; });
+      t += col[0]+col[1];
+    }
+    return t;
+  }
+  function calcSkins(pars){
+    var out=[];
+    for(var h=0;h<18;h++){
+      var par=pars[h], under=[];
+      if(par===null) continue;
+      for(var i=0;i<activeCount();i++){
+        var s=playerScores(i)[h];
+        /* an unentered score is ABSENT, never a number. In JS null < 4 is
+           true, so a missing score would otherwise count as under par and
+           steal the skin — the same trap as the -1 sentinel in the Sheet. */
+        if(s!==null && s<par) under.push({name:pname(i), score:s});
+      }
+      if(!under.length) continue;
+      var min=Math.min.apply(null,under.map(function(u){ return u.score; }));
+      var w=under.filter(function(u){ return u.score===min; });
+      if(w.length!==1) continue;
+      var d=par-min;
+      out.push({hole:h+1, player:w[0].name, score:min, par:par,
+                type:d>=3?"Albatross":d===2?"Eagle":"Birdie"});
+    }
+    return out;
+  }
+
+  /* every chunk in the session, in entry order */
+  function allChunks(){
+    var list=[
+      {a:state.pars.front, label:"Pars · Front 9",     go:{step:"pars", nine:"front"}},
+      {a:state.pars.back,  label:"Pars · Back 9",      go:{step:"pars", nine:"back"}},
+      {a:state.ranks.front,label:"Rankings · Front 9", go:{step:"ranks",nine:"front"}},
+      {a:state.ranks.back, label:"Rankings · Back 9",  go:{step:"ranks",nine:"back"}}
+    ];
+    for(var i=0;i<activeCount();i++){
+      list.push({a:state.scores[i+"-front"], label:pname(i)+" · Front 9",
+                 go:{step:"scores",nine:"front",player:i}});
+      list.push({a:state.scores[i+"-back"],  label:pname(i)+" · Back 9",
+                 go:{step:"scores",nine:"back", player:i}});
+    }
+    return list;
+  }
+
+  function goTo(t){
+    state.step=t.step; if(t.nine) state.nine=t.nine;
+    if(typeof t.player==="number") state.player=t.player;
+    state.armed=null; wasComplete=false;
+    save(); render();
+    document.querySelector(".scrollarea").scrollTop=0;
+  }
+
+  /* Enter walks name -> handicap -> next player's name, and lets go at the end. */
+  function advance(seq){
+    var next=document.querySelector('#playersUI [data-seq="'+(seq+1)+'"]');
+    if(next){ next.focus(); if(next.select) next.select(); }
+    else{
+      var cur=document.querySelector('#playersUI [data-seq="'+seq+'"]');
+      if(cur) cur.blur();
+    }
+  }
+
+  /* Ernie — Kyle's own cartoon engineer, from his class notes.
+     Embedded as a data URI because the app must work with no connection. */
+  var ERNIE="data:image/png;base64,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";
+
+  function renderPlayers(){
+    var w=document.getElementById("playersUI");
+    w.innerHTML="";
+
+    [1,2].forEach(function(teamNo){
+      var h=document.createElement("div");
+      h.className="pteam";
+      h.textContent = teamNo===1 ? "Team 1 — your foursome"
+                    : "Team 2 — leave blank if only four are playing";
+      w.appendChild(h);
+
+      var head=document.createElement("div");
+      head.className="phead";
+      head.innerHTML="<span></span><span>Name</span><span>Course hcp</span>";
+      w.appendChild(head);
+
+      for(var k=0;k<4;k++){
+        (function(i){
+          var r=document.createElement("div"); r.className="prow";
+
+          /* 1-8, not A-D. The app talks in player numbers everywhere else, and
+             the inside game is 1&2 against 3&4 — so the slot number IS the
+             pairing. A/B/C/D was CCW's per-team lettering and meant nothing here. */
+          var slot=document.createElement("div");
+          slot.className="pslot";
+          slot.textContent=i+1;
+
+          var nm=document.createElement("input");
+          nm.className="pin"; nm.type="text";
+          nm.placeholder="Name";
+          nm.value=state.roster[i].name;
+          nm.autocapitalize="words"; nm.autocomplete="off"; nm.spellcheck=false;
+          /* iOS labels the return key from this, and Enter walks to the next
+             field instead of doing nothing */
+          nm.setAttribute("enterkeyhint","next");
+          nm.dataset.seq=(i*2);
+          nm.oninput=function(){ state.roster[i].name=nm.value; save(); };
+          nm.onkeydown=function(e){ if(e.key==="Enter"){ e.preventDefault(); advance(i*2); } };
+
+          var hc=document.createElement("input");
+          hc.className="pin hcp"; hc.type="text";
+          hc.inputMode="numeric"; hc.placeholder="—";
+          hc.value=state.roster[i].hcp;
+          hc.setAttribute("enterkeyhint", i===7 ? "done" : "next");
+          hc.dataset.seq=(i*2+1);
+          hc.oninput=function(){
+            hc.value=hc.value.replace(/[^0-9]/g,"").slice(0,2);
+            state.roster[i].hcp=hc.value; save();
+          };
+          hc.onkeydown=function(e){ if(e.key==="Enter"){ e.preventDefault(); advance(i*2+1); } };
+
+          r.appendChild(slot); r.appendChild(nm); r.appendChild(hc);
+          w.appendChild(r);
+        })((teamNo-1)*4+k);
+      }
+    });
+
+    var e=document.createElement("div"); e.className="ernie";
+    var crop=document.createElement("span"); crop.className="head";
+    var img=document.createElement("img");
+    img.src=ERNIE; img.alt="Ernie";
+    crop.appendChild(img); e.appendChild(crop);
+    w.appendChild(e);
+  }
+
+  /* The whole card at once — holes down, players across, same orientation as
+     4Score's Holes tab. Read-only: this is for checking your work, not entry.
+     No green/yellow hole colouring — that is Part 2, and the rule that decides
+     who won a hole is not known yet. Do not guess it here. */
+  /* ---------------------------------------------------------------
+     THE INSIDE GAME — team 1's foursome only.
+     Rules decoded from the 4Score backing Sheet; see
+     GOLF_PWA_PART2_RULES.md. Verified against real cell values:
+
+       pops(i)   = courseHcp(i) - min(courseHcp across the foursome)
+       net(i,h)  = gross - ( floor(pops/18) + (SI[h] <= pops%18 ? 1 : 0) )
+       BB12      = min(net p1, net p2)
+       BB34      = min(net p3, net p4)
+       lower BB wins the hole; equal is halved
+
+     Team 2 never appears here — their scores are entered after the round.
+     --------------------------------------------------------------- */
+
+  function insideGame(){
+    var ranks=full(state.ranks);
+    var haveRanks = ranks.every(function(v){ return v!==null; });
+
+    var hcps=[], ok=true;
+    for(var i=0;i<4;i++){ var h=phcp(i); if(h===null) ok=false; hcps.push(h); }
+    if(!ok || !haveRanks) return {ready:false, haveRanks:haveRanks, haveHcps:ok};
+
+    var low=Math.min.apply(null,hcps);
+    var pops=hcps.map(function(h){ return h-low; });
+
+    var net=[], gross=[];
+    for(var p=0;p<4;p++){
+      var sc=playerScores(p), nr=[];
+      for(var q=0;q<18;q++){
+        nr.push(sc[q]===null ? null : sc[q]-strokesFor(pops[p], ranks[q]));
+      }
+      gross.push(sc); net.push(nr);
+    }
+
+    var pts=[], tally={p12:0,p34:0,halved:0};
+    for(var hh=0;hh<18;hh++){
+      var a=bestOf(net[0][hh],net[1][hh]), b=bestOf(net[2][hh],net[3][hh]);
+      if(a===null||b===null){ pts.push(null); continue; }
+      if(a<b){ pts.push("12"); tally.p12++; }
+      else if(b<a){ pts.push("34"); tally.p34++; }
+      else { pts.push("AS"); tally.halved++; }
+    }
+    return {ready:true, pops:pops, low:low, net:net, gross:gross, pts:pts, tally:tally, ranks:ranks};
+
+    function bestOf(x,y){
+      if(x===null&&y===null) return null;
+      if(x===null) return y;
+      if(y===null) return x;
+      return Math.min(x,y);
+    }
+  }
+
+  function initials(a,b){
+    return (pname(a).trim()[0]||"?").toUpperCase()
+         + (pname(b).trim()[0]||"?").toUpperCase();
+  }
+
+  /* ---------------------------------------------------------------
+     ONE HOLE, ONE SCREEN — no scrolling.
+     AppSheet needs ~5 screens per hole. Everything here fits above the fold:
+     four scores from the same 3x3 pad (type 6544 and the hole is done),
+     junk as one grid, greenies as two steppers.
+     --------------------------------------------------------------- */
+  function renderHoleEntry(){
+    var w=document.getElementById("holeUI");
+    w.innerHTML="";
+    var h=state.holeIdx, g=insideGame();
+    var pars=full(state.pars), ranks=full(state.ranks);
+    var J=state.junk[h];
+
+    var head=document.createElement("div"); head.className="hehead";
+    var nav1=document.createElement("button");
+    nav1.className="henav"; nav1.textContent="‹"; nav1.disabled=(h===0);
+    nav1.onclick=function(){ state.holeIdx--; state.holeSel=0; save(); render(); };
+    var mid=document.createElement("div"); mid.className="hemid";
+    var pt = g.ready ? g.pts[h] : null;
+    mid.innerHTML="<div class='henum'>"+(h+1)+"</div><div class='hemeta'>"
+      +(pars[h]===null?"Par —":"Par "+pars[h])+" &nbsp;·&nbsp; "
+      +(ranks[h]===null?"SI —":"SI "+ranks[h])+"</div>";
+    var nav2=document.createElement("button");
+    nav2.className="henav"; nav2.textContent="›"; nav2.disabled=(h===17);
+    nav2.onclick=function(){ state.holeIdx++; state.holeSel=0; save(); render(); };
+    head.appendChild(nav1); head.appendChild(mid); head.appendChild(nav2);
+    w.appendChild(head);
+
+    var band=document.createElement("div");
+    band.className="heband"+(pt==="12"?" w12":pt==="34"?" w34":"");
+    band.textContent = !g.ready ? "Course and handicaps needed to score this hole"
+      : pt===null ? "Hole not complete"
+      : pt==="AS" ? "Halved"
+      : pt==="12" ? pname(0)+" & "+pname(1)+" win the hole"
+      : pname(2)+" & "+pname(3)+" win the hole";
+    w.appendChild(band);
+
+    var sc=document.createElement("div"); sc.className="hescores";
+    for(var i=0;i<4;i++){
+      (function(p){
+        var cellb=document.createElement("button");
+        var v=state.scores[p+(h<9?"-front":"-back")][h%9];
+        var side = pt==="12"&&p<2 ? " won12" : pt==="34"&&p>=2 ? " won34" : "";
+        cellb.className="hecell"+(state.holeSel===p?" sel":"")+(v===null?" empty":"")+side;
+        var shots = (g.ready && ranks[h]!==null) ? strokesFor(g.pops[p], ranks[h]) : 0;
+        cellb.innerHTML="<em>"+pname(p)+(shots?" <b>"+Array(shots+1).join("•")+"</b>":"")+"</em>"
+                       +"<span>"+(v===null?"·":v)+"</span>";
+        cellb.onclick=function(){ state.holeSel=p; render(); };
+        sc.appendChild(cellb);
+      })(i);
+    }
+    w.appendChild(sc);
+
+    var pw=document.createElement("div"); pw.className="hepadwrap";
+    var pad=document.createElement("div"); pad.className="pad hepad";
+    for(var n=1;n<=9;n++){
+      (function(num){
+        var b=document.createElement("button"); b.className="key"; b.textContent=num;
+        b.onclick=function(){ setHoleScore(num); };
+        pad.appendChild(b);
+      })(n);
+    }
+    var clr=document.createElement("button");
+    clr.className="key util"; clr.textContent="Clear";
+    clr.onclick=function(){ setHoleScore(null); };
+    var spacer=document.createElement("div");
+    var nxt=document.createElement("button");
+    nxt.className="key util"; nxt.textContent=(h===17?"Done":"Next");
+    nxt.onclick=function(){
+      if(h<17){ state.holeIdx++; state.holeSel=0; save(); render(); }
+      else goStep("holes");
+    };
+    pad.appendChild(clr); pad.appendChild(spacer); pad.appendChild(nxt);
+    pw.appendChild(pad); w.appendChild(pw);
+
+    /* junk cells are counters: tap to add one, past 3 clears. The small
+       corner number is that player's running total for the round. */
+    var jg=document.createElement("div"); jg.className="junkgrid";
+    var hdr=document.createElement("div"); hdr.className="junkrow junkhdr";
+    hdr.appendChild(lbl(""));
+    for(var q=0;q<4;q++) hdr.appendChild(lbl(shortName(q)));
+    jg.appendChild(hdr);
+
+    [["b","Birdie"],["c","Chippie"],["s","Sandie"]].forEach(function(pair){
+      var jrow=document.createElement("div"); jrow.className="junkrow";
+      jrow.appendChild(lbl(pair[1]));
+      for(var p=0;p<4;p++){
+        (function(kind,pi){
+          /* the big number is the RUNNING TOTAL for the round — it carries over
+             from previous holes. Tapping adds one (booked against this hole).
+             The small corner number is how many came from this hole, so a
+             mistake can be walked back: tapping past 3 clears this hole. */
+          var here=J[kind][pi], run=junkTotal(kind,pi);
+          var b=document.createElement("button");
+          b.className="junkbtn"+(here?" on":"");
+          b.innerHTML="<span>"+run+"</span>"+(here?"<em>+"+here+"</em>":"");
+          b.onclick=function(){ J[kind][pi]=(J[kind][pi]+1)%4; save(); render(); };
+          jrow.appendChild(b);
+        })(pair[0],p);
+      }
+      jg.appendChild(jrow);
+    });
+    w.appendChild(jg);
+
+    var gw=document.createElement("div"); gw.className="greenies";
+    gw.appendChild(stepper("G12", pname(0)+" & "+pname(1), "g12", "s12"));
+    gw.appendChild(stepper("G34", pname(2)+" & "+pname(3), "g34", "s34"));
+    w.appendChild(gw);
+
+    function setHoleScore(v){
+      var key=state.holeSel+(h<9?"-front":"-back");
+      state.scores[key][h%9]=v;
+      if(v!==null && state.holeSel<3) state.holeSel++;
+      save(); render();
+    }
+    function lbl(t){ var d=document.createElement("div"); d.className="junklbl"; d.textContent=t; return d; }
+    function shortName(i){ var n=pname(i); return n.length>6 ? n.slice(0,5)+"…" : n; }
+    function junkTotal(kind,pi){
+      var n=0; for(var i=0;i<18;i++) n+=state.junk[i][kind][pi]; return n;
+    }
+    function greenieTotal(key){
+      var n=0; for(var i=0;i<18;i++) n+=state.junk[i][key]; return n;
+    }
+    function stepper(code, who, key, cls){
+      /* same rule as the junk grid: the number is the ROUND total, carried
+         across holes. + and − book against this hole. */
+      var d=document.createElement("div"); d.className="gstep "+cls;
+      var here=J[key], run=greenieTotal(key);
+      var t=document.createElement("div"); t.className="gtitle";
+      t.innerHTML="<strong>"+code+(here?" <i>+"+here+" here</i>":"")+"</strong>"
+                 +"<span>"+who+"</span>";
+      var ctl=document.createElement("div"); ctl.className="gctl";
+      var minus=document.createElement("button"); minus.className="gbtn"; minus.textContent="−";
+      minus.onclick=function(){ if(J[key]>0){ J[key]--; save(); render(); } };
+      var val=document.createElement("div"); val.className="gval"+(here?" here":"");
+      val.textContent=run;
+      var plus=document.createElement("button"); plus.className="gbtn"; plus.textContent="+";
+      plus.onclick=function(){ J[key]++; save(); render(); };
+      ctl.appendChild(minus); ctl.appendChild(val); ctl.appendChild(plus);
+      d.appendChild(t); d.appendChild(ctl);
+      return d;
+    }
+  }
+
+  function renderHoles(){
+    var w=document.getElementById("holesUI");
+    w.innerHTML="";
+    var g=insideGame(), pars=full(state.pars);
+
+    /* one thin strip, then straight into the grid */
+    if(!g.ready){
+      var miss=document.createElement("div"); miss.className="needstrip";
+      miss.innerHTML="Add "
+        +(!g.haveRanks?"hole rankings":"")
+        +((!g.haveRanks&&!g.haveHcps)?" and ":"")
+        +(!g.haveHcps?"course handicaps":"")
+        +" to score the holes";
+      w.appendChild(miss);
+    }
+    /* No holes-won ticker. Kyle plays 5 ways with automatic presses, so a
+       running count of holes won says nothing about who owes what — the
+       hole-by-hole colouring is what he actually reads. */
+
+    var ranks=full(state.ranks);
+
+    /* CSS Grid, not a table. Every row is a grid with the SAME column template,
+       so columns are aligned and fixed by construction — a cell cannot split,
+       stretch or drift the way table cells did. */
+    var box=document.createElement("div"); box.className="hx";
+
+    var head=row("hxhead");
+    head.appendChild(cell("Hole","hh"));
+    /* the (n) is coloured by SIDE — green for 1&2, gold for 3&4 — so the two
+       twosomes read at a glance. Separate signal from the neutral pop dots
+       inside the cells. */
+    for(var i=0;i<4;i++){
+      var e=cell("","hh "+(i<2?"s12":"s34"));
+      e.innerHTML=pname(i)+(g.ready?' <i>('+g.pops[i]+')</i>':'');
+      head.appendChild(e);
+    }
+    box.appendChild(head);
+
+    for(var h=0;h<18;h++){
+      (function(hole){
+        var r=row("hxtap");
+        var meta=[];
+        if(pars[hole]!==null)  meta.push("par "+pars[hole]);
+        if(ranks[hole]!==null) meta.push("si "+ranks[hole]);
+        var hc=cell("","hnum");
+        hc.innerHTML="<b>"+(hole+1)+"</b>"+(meta.length?"<i>"+meta.join(" · ")+"</i>":"");
+        r.appendChild(hc);
+
+        var pt = g.ready ? g.pts[hole] : null;
+        for(var i=0;i<4;i++){
+          var v=playerScores(i)[hole];
+          var cls = v===null ? "sc miss" : "sc";
+          if(v!==null && pt==="12" && i<2) cls="sc won12";
+          if(v!==null && pt==="34" && i>=2) cls="sc won34";
+          /* pops are marked ON the cell they apply to, as a count — not dots,
+             so two (or more) shots read instantly. Kyle at 21 pops gets two on
+             stroke index 1-3, which is common, not an edge case. */
+          var shots = (g.ready && ranks[hole]!==null)
+                        ? strokesFor(g.pops[i], ranks[hole]) : 0;
+          if(shots) cls += " pop"+(shots>1?" pop2":"");
+          var c=cell(v===null?"·":v, cls);
+          if(shots) c.dataset.pops=shots;
+          r.appendChild(c);
+        }
+        r.onclick=function(){ state.holeIdx=hole; state.holeSel=0; goStep("hole"); };
+        box.appendChild(r);
+      })(h);
+      if(h===8)  subtotal("Out",0,9);
+      if(h===17){ subtotal("In",9,18); subtotal("Tot",0,18); }
+    }
+
+    w.appendChild(box);
+
+    function subtotal(label, from, to){
+      var r=row("hxsub");
+      var tally="", side="";
+      if(g.ready){
+        var a=0,b=0;
+        for(var k=from;k<to;k++){ if(g.pts[k]==="12")a++; if(g.pts[k]==="34")b++; }
+        tally=a+"–"+b;
+        /* the segment tally wears the colour of whoever took it */
+        side = a>b ? " t12" : b>a ? " t34" : " tAS";
+      }
+      var lc=cell("","hnum"+side);
+      lc.innerHTML="<b>"+label+"</b>"+(tally?"<i>"+tally+"</i>":"");
+      r.appendChild(lc);
+      for(var i=0;i<4;i++){
+        var sc=playerScores(i), s=0, any=false;
+        for(var q=from;q<to;q++){ if(sc[q]!==null){ s+=sc[q]; any=true; } }
+        r.appendChild(cell(any?s:"—","sc"));
+      }
+      box.appendChild(r);
+    }
+    function row(cls){ var d=document.createElement("div"); d.className="hxrow "+cls; return d; }
+    function cell(txt,cls){
+      var d=document.createElement("div"); d.className="hxc "+cls;
+      if(txt!=="") d.textContent=txt;
+      return d;
+    }
+  }
+
+  function renderResults(){
+    var w=document.getElementById("resultsUI");
+    w.innerHTML="";
+
+    var chunks=allChunks();
+    var missing=chunks.filter(function(c){ return !chunkDone(c.a); });
+    var needRoster=!rosterReady();
+
+    /* No progress bar. The "still needed" list below says what is missing and
+       jumps you there; a percentage on top of it is noise. */
+    if(missing.length || needRoster){
+      var ms=document.createElement("div"); ms.className="rsec";
+      ms.textContent="Still needed — tap to jump";
+      w.appendChild(ms);
+      var box=document.createElement("div"); box.className="missing";
+
+      if(needRoster){
+        var rb=document.createElement("button"); rb.className="miss";
+        var rl=document.createElement("span"); rl.textContent="Players · names and handicaps";
+        var re=document.createElement("em"); re.textContent="Incomplete";
+        rb.appendChild(rl); rb.appendChild(re);
+        rb.onclick=function(){ goTo({step:"players"}); };
+        box.appendChild(rb);
+      }
+
+      missing.slice(0,8).forEach(function(m){
+        var b=document.createElement("button");
+        b.className="miss";
+        var l=document.createElement("span"); l.textContent=m.label;
+        var e=document.createElement("em"); e.textContent=filled(m.a)+"/9";
+        b.appendChild(l); b.appendChild(e);
+        b.onclick=function(){ goTo(m.go); };
+        box.appendChild(b);
+      });
+      w.appendChild(box);
+      if(missing.length>8){
+        var more=document.createElement("div"); more.className="rnote";
+        more.textContent="…and "+(missing.length-8)+" more.";
+        w.appendChild(more);
+      }
+      var note=document.createElement("div"); note.className="rnote";
+      note.textContent="";
+      w.appendChild(note);
+      return;
+    }
+
+    /* everything is in — run the real engine */
+    var ranks=full(state.ranks), pars=full(state.pars);
+
+    /* four-player round: there is no team 2 to play, so the inside game
+       IS the result. */
+    if(!teamTwoActive()){
+      var ig=insideGame();
+      var h4=document.createElement("div"); h4.className="rsec";
+      h4.textContent="Inside game";
+      w.appendChild(h4);
+      if(ig.ready){
+        var st=document.createElement("div"); st.className="standing";
+        st.appendChild(sideBox(pname(0)+" & "+pname(1), ig.tally.p12, "s12"));
+        var md=document.createElement("div"); md.className="halved";
+        md.innerHTML="<span>"+ig.tally.halved+"</span>halved";
+        st.appendChild(md);
+        st.appendChild(sideBox(pname(2)+" & "+pname(3), ig.tally.p34, "s34"));
+        w.appendChild(st);
+        var verdict=document.createElement("div"); verdict.className="rnote";
+        verdict.innerHTML = ig.tally.p12===ig.tally.p34
+          ? "All square after 18."
+          : "<b>"+(ig.tally.p12>ig.tally.p34
+              ? pname(0)+" & "+pname(1) : pname(2)+" & "+pname(3))
+            +"</b> take it, "+Math.max(ig.tally.p12,ig.tally.p34)
+            +"–"+Math.min(ig.tally.p12,ig.tally.p34)+".";
+        w.appendChild(verdict);
+      }
+      renderSkins(pars, w);
+      return;
+    }
+
+    var teams=[
+      {name:"Team 1", idxs:[0,1,2,3]},
+      {name:"Team 2", idxs:[4,5,6,7]}
+    ].map(function(t){
+      t.score=twoBestBallNet(t.idxs, ranks);
+      t.roster=t.idxs.map(function(i){ return pname(i)+" ("+phcp(i)+")"; }).join(" · ");
+      return t;
+    }).sort(function(a,b){ return a.score-b.score; });
+
+    var th=document.createElement("div"); th.className="rsec";
+    th.textContent="2 best-ball net";
+    w.appendChild(th);
+
+    var tie = teams[0].score===teams[1].score;
+    teams.forEach(function(t,i){
+      var r=document.createElement("div");
+      r.className="teamrow"+((i===0&&!tie)?" win":"");
+      var n=document.createElement("div"); n.className="tname";
+      var s=document.createElement("strong"); s.textContent=t.name;
+      var sm=document.createElement("small"); sm.textContent=t.roster;
+      n.appendChild(s); n.appendChild(sm);
+      if(i===0&&!tie){
+        var badge=document.createElement("span");
+        badge.className="winbadge"; badge.textContent="Wins";
+        n.appendChild(badge);
+      }
+      var v=document.createElement("div"); v.className="tscore"; v.textContent=t.score;
+      r.appendChild(n); r.appendChild(v);
+      w.appendChild(r);
+    });
+
+    if(tie){
+      var tn=document.createElement("div"); tn.className="rnote";
+      tn.innerHTML="Tied at "+teams[0].score+". The real app breaks this by match of cards "
+        +"(back 9, back 6, back 3, hole 18) — not wired into this mockup.";
+      w.appendChild(tn);
+    }
+
+    renderDraw(w, ranks);
+    renderSkins(pars, w);
+  }
+
+  function renderSkins(pars, w){
+    var sk=calcSkins(pars);
+    var sh=document.createElement("div"); sh.className="rsec";
+    sh.textContent="Skins";
+    w.appendChild(sh);
+    if(!sk.length){
+      var ns=document.createElement("div"); ns.className="rnote";
+      ns.textContent="No skins won this round.";
+      w.appendChild(ns);
+      return;
+    }
+    sk.forEach(function(s){
+      var r=document.createElement("div"); r.className="skin";
+      var l=document.createElement("span");
+      l.innerHTML='<span class="h">Hole '+s.hole+'</span> &nbsp; '+s.player+' — '+s.score;
+      var t=document.createElement("span"); t.className="t"; t.textContent=s.type;
+      r.appendChild(l); r.appendChild(t);
+      w.appendChild(r);
+    });
+  }
+
+  /* ---- the random draw --------------------------------------------
+     All eight mixed into four pairs, independent of team. Fisher-Yates,
+     same as CC_shuffle in ScannerBot_CCW.gs — verified fair over 2M draws
+     in ccw_draw_fairness_test.js.
+
+     Drawn ONCE and stored. A draw recomputed on every render would reshuffle
+     each time the screen is looked at, which is useless for a bet.
+
+     Uses RAW course handicaps, not the inside game's relative pops. */
+  function drawPairs(){
+    var a=[0,1,2,3,4,5,6,7];
+    for(var i=a.length-1;i>0;i--){
+      var j=Math.floor(Math.random()*(i+1));
+      var t=a[i]; a[i]=a[j]; a[j]=t;
+    }
+    var pairs=[];
+    for(var k=0;k<a.length-1;k+=2) pairs.push([a[k],a[k+1]]);
+    return pairs;
+  }
+  function bbGross(p,q){
+    var A=playerScores(p), B=playerScores(q), t=0;
+    for(var h=0;h<18;h++) t+=Math.min(A[h],B[h]);
+    return t;
+  }
+  function bbNet(p,q,ranks){
+    var A=netOf(p,ranks), B=netOf(q,ranks), t=0;
+    for(var h=0;h<18;h++) t+=Math.min(A[h],B[h]);
+    return t;
+  }
+
+  function renderDraw(w, ranks){
+    var sec=document.createElement("div");
+    sec.className="rsec"; sec.textContent="Random draw";
+    w.appendChild(sec);
+
+    if(!state.draw){
+      var b=document.createElement("button");
+      b.className="drawbtn"; b.textContent="Draw the pairs";
+      b.onclick=function(){ state.draw=drawPairs(); save(); render(); };
+      var wrap=document.createElement("div"); wrap.className="drawwrap";
+      wrap.appendChild(b); w.appendChild(wrap);
+      return;
+    }
+
+    /* Two separate ranked lists, same as ccw_golf_photo.jsx: the same four
+       pairs sorted by gross, then by net, each with the winner at #1. */
+    var names=state.draw.map(function(pr){ return pname(pr[0])+" & "+pname(pr[1]); });
+    var gp=state.draw.map(function(pr,i){
+      return {names:names[i], score:bbGross(pr[0],pr[1])};
+    }).sort(function(a,b){ return a.score-b.score; });
+    var np=state.draw.map(function(pr,i){
+      return {names:names[i], score:bbNet(pr[0],pr[1],ranks)};
+    }).sort(function(a,b){ return a.score-b.score; });
+
+    list("Best ball gross", gp);
+    list("Best ball net",   np);
+
+    function list(title, rows){
+      var h=document.createElement("div");
+      h.className="drawsub"; h.textContent=title;
+      w.appendChild(h);
+
+      /* Ties are NOT resolved — every pair on the low score is marked, and the
+         heading says it is tied. Highlighting only the first would silently
+         crown whichever pair the sort happened to put on top. */
+      /* The low score keeps its green. On a tie EVERY pair on that score is
+         green and tagged TIED — highlighting only the first would silently
+         crown whichever pair the sort happened to put on top. */
+      var best=rows[0].score;
+      var nBest=rows.filter(function(r){ return r.score===best; }).length;
+      var tied=nBest>1;
+
+      /* rank numbers share a place on a tie: 1,1,3,4 not 1,2,3,4 */
+      var rank=0, prev=null;
+      rows.forEach(function(r,i){
+        if(r.score!==prev){ rank=i+1; prev=r.score; }
+        var isBest=r.score===best;
+        var d=document.createElement("div");
+        d.className="drawrow"+(isBest?" win":"");
+        d.innerHTML='<span class="dr">'+rank+'</span>'
+                   +'<span class="dn">'+r.names
+                   +(isBest&&tied?' <em class="tietag">tied</em>':'')+'</span>'
+                   +'<span class="dnet">'+r.score+'</span>';
+        w.appendChild(d);
+      });
+    }
+  }
+
+  function sideBox(nm,n,cls){
+    var d=document.createElement("div"); d.className="sideBox "+cls;
+    d.innerHTML="<span>"+n+"</span>"+nm;
+    return d;
+  }
+
+  function mkNav(txt,dis,fn){
+    var b=document.createElement("button");
+    b.className="navbtn"; b.textContent=txt; b.disabled=dis; b.onclick=fn; return b;
+  }
+
+  function backspace(){
+    var a=current();
+    if(state.armed!==null){ a[state.armed]=null; state.armed=null; }
+    else{ for(var i=8;i>=0;i--){ if(a[i]!==null){ a[i]=null; break; } } }
+    save(); render();
+  }
+
+  function renderPad(isRank, arr){
+    var wrap=document.getElementById("padWrap"); wrap.innerHTML="";
+    var pad=document.createElement("div");
+    pad.className="pad"+(isRank?" rank":"");
+    var max  = isRank ? 18 : 9;
+    var used = isRank ? usedRanks() : null;
+
+    for(var n=1;n<=max;n++){
+      (function(num){
+        var b=document.createElement("button");
+        b.className="key"; b.textContent=num;
+        if(isRank && used[num] && !(state.armed!==null && arr[state.armed]===num)){
+          b.className+=" used"; b.disabled=true;
+        }
+        b.onclick=function(){ press(num); };
+        pad.appendChild(b);
+      })(n);
+    }
+
+    if(!isRank){
+      var clr=document.createElement("button");
+      clr.className="key util"; clr.textContent="Clear";
+      clr.onclick=function(){
+        if(state.step==="pars") state.pars[state.nine]=blank();
+        else state.scores[state.player+"-"+state.nine]=blank();
+        state.armed=null; save(); render();
+      };
+      var spacer=document.createElement("div");
+      var back=document.createElement("button");
+      back.className="key util"; back.textContent="Back"; back.onclick=backspace;
+      pad.appendChild(clr); pad.appendChild(spacer); pad.appendChild(back);
+    }else{
+      var rb=document.createElement("button");
+      rb.className="key util"; rb.textContent="Back";
+      rb.style.gridColumn="1 / -1"; rb.style.height="46px";
+      rb.onclick=backspace;
+      pad.appendChild(rb);
+    }
+    wrap.appendChild(pad);
+  }
+
+  function press(num){
+    var a=current();
+    if(state.armed!==null){ justLanded=state.armed; a[state.armed]=num; state.armed=null; }
+    else{
+      var i=nextIdx(a);
+      if(i===-1) return;
+      a[i]=num; justLanded=i;
+    }
+    save(); render();
+  }
+
+  document.querySelectorAll(".tab").forEach(function(b){
+    b.onclick=function(){ goStep(b.dataset.tab); };
+  });
+  /* top buttons: pre-round setup. Course remembers its last sub-tab. */
+  document.querySelectorAll(".setupbtn").forEach(function(b){
+    b.onclick=function(){
+      goStep(b.dataset.setup==="course" ? (state.lastCourse||"pars") : "players");
+    };
+  });
+  /* ---- new round ---------------------------------------------------
+     Day 2 of a trip is often the SAME course, so re-typing 36 numbers you
+     already entered would be daft. The sheet asks what to keep. ------- */
+  function blankScores(){
+    var s={};
+    for(var i=0;i<activeCount();i++){ s[i+"-front"]=blank(); s[i+"-back"]=blank(); }
+    return s;
+  }
+  function newRound(mode){
+    if(mode!=="same"){ /* course goes unless you said same course */
+      if(mode==="newcourse"||mode==="all"){
+        state.pars ={front:blank(),back:blank()};
+        state.ranks={front:blank(),back:blank()};
+      }
+    }
+    if(mode==="all") state.roster=defaultRoster();
+
+    if(mode==="ccw"||mode==="demo"){
+      state.pars =ccwPars();
+      state.ranks=ccwRanks();
+    }
+    if(mode==="ccw")  state.roster=defaultRoster();
+    state.scores=blankScores();
+    state.junk=defaultJunk();
+
+    /* DEMO — a permanent feature, kept deliberately: it is the only way to see
+       Results and the inside game without typing eight scorecards, and it is
+       how the app gets shown to people. Team 1's card is the real CCW sample
+       from CCW_System_README.md, so the numbers on screen are honest. */
+    if(mode==="demo"){
+      state.roster=demoRoster();
+      state.scores=demoScores();
+      state.junk  =demoJunk();
+    }
+    state.holeIdx=0; state.holeSel=0; state.armed=null; state.draw=null;
+    state.nine="front"; wasComplete=false;
+    /* Every new round lands on Players. The roster sets the low man, the low
+       man sets everyone's pops, and pops decide every hole result — so a wrong
+       roster scores the whole round wrong, silently. It also genuinely changes
+       every round, since the foursomes get re-thrown.
+       The demo is the exception: it is already complete, so it opens on Holes. */
+    state.step = (mode==="demo") ? "holes" : "players";
+    state.lastCourse="pars";
+    save(); render();
+    document.querySelector(".scrollarea").scrollTop=0;
+  }
+
+  var sheet=document.getElementById("newSheet");
+  function closeSheet(){ sheet.hidden=true; }
+  document.getElementById("newRoundBtn").onclick=function(){ sheet.hidden=false; };
+  document.getElementById("sheetCancel").onclick=closeSheet;
+  document.getElementById("sheetBg").onclick=closeSheet;
+  sheet.querySelectorAll(".sheetbtn").forEach(function(b){
+    b.onclick=function(){ closeSheet(); newRound(b.dataset.mode); };
+  });
+
+  function goStep(step){
+    state.step=step; state.armed=null; wasComplete=false;
+    save(); render();
+    document.querySelector(".scrollarea").scrollTop=0;
+  }
+  document.querySelectorAll(".subtab").forEach(function(b){
+    b.onclick=function(){
+      state.step=b.dataset.sub; state.lastCourse=state.step;
+      state.armed=null; wasComplete=false;
+      save(); render();
+    };
+  });
+  document.querySelectorAll(".ninebtn").forEach(function(b){
+    b.onclick=function(){ state.nine=b.dataset.nine; state.armed=null; render(); };
+  });
+
+  /* Surface any runtime error on screen instead of dying silently. A blank or
+     frozen screen tells us nothing; the message tells us everything. */
+  var _render = render;
+  render = function(){
+    try { _render(); }
+    catch(e){
+      var bar=document.getElementById("errbar");
+      if(bar){
+        bar.style.display="block";
+        bar.textContent="Error in "+state.step+": "+(e && e.message ? e.message : e);
+      }
+      throw e;
+    }
+  };
+  if(typeof window!=="undefined"){
+    window.onerror=function(msg){
+      var bar=document.getElementById("errbar");
+      if(bar){ bar.style.display="block"; bar.textContent=String(msg); }
+    };
+  }
+
+  /* A saved round from an older build may name a screen that no longer
+     exists (the Pops tab, for one). Fall back rather than render nothing. */
+  var KNOWN={pars:1,ranks:1,players:1,scores:1,holes:1,hole:1,results:1};
+  if(!KNOWN[state.step]) state.step="holes";
+
+  load();
+  if(!KNOWN[state.step]) state.step="holes";
+  render();
+})();
+</script>
+
+<script>
+/* Register the service worker — this is what makes the app open with no signal.
+   Failure is non-fatal: without it the app still works, it just needs a
+   connection to start. */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('sw.js').catch(function (e) {
+      console.log('service worker did not register:', e);
+    });
+  });
+}
+</script>
+</body>
+</html>
