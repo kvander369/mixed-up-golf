@@ -26,7 +26,10 @@ rankings are loaded by default.
 ## Rules it implements
 
 Decoded from the group's own Google Sheet and verified against it, not guessed.
-See `GOLF_PWA_PART2_RULES.md` in the Claude-Scannerbot folder.
+Full detail in `docs/GOLF_PWA_PART2_RULES.md`.
+
+**Start at `docs/GOLF_APP_STATE.md`** — where things stand, what is decided and
+why, and the traps that look like bugs to someone tidying up.
 
 Two stroke allocations, deliberately different:
 
