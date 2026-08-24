@@ -5,7 +5,7 @@
 <!-- viewport-fit=cover is what makes env(safe-area-inset-*) resolve to real
      numbers; without it the safe-area padding in the CSS is inert and controls
      end up under the iPhone home indicator. -->
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#8FD974">
 <meta name="description" content="Round tracker for the inside game, junk, skins and the random draw. Works with no signal.">
 <link rel="manifest" href="manifest.webmanifest">
@@ -15,7 +15,44 @@
 <meta name="apple-mobile-web-app-title" content="Mixed Up">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" href="icon-192.png">
-<style>*{-webkit-text-size-adjust:100%;}html,body{margin:0;padding:0;}</style>
+<style>
+/* Kyle, 2026-08-24: "every now and then the screen jumped into a
+   magnification mode." Two separate phone gestures were doing it, and fast
+   score entry triggers both:
+
+   1. DOUBLE-TAP TO ZOOM. Tapping the same key twice in a row - 5 then 5 -
+      reads as a double-tap and the browser zooms the page.
+      touch-action:manipulation switches that gesture off. Scrolling and
+      PINCH zoom still work, so nothing is taken away deliberately; only the
+      Kyle, 2026-08-24: "Dont zoom anything. it is annoying." So this is
+      pan-x pan-y, not manipulation - scrolling still works, ALL zoom is
+      off, pinch included.
+
+   2. THE TEXT LOUPE. Hold a tap a fraction too long and iOS pops its
+      magnifying glass and the copy/paste bubble over the card.
+      user-select:none and touch-callout:none stop that. There is no text on
+      any screen worth selecting.
+
+   Belt and braces, because no single one of these covers every phone:
+     - user-scalable=no in the viewport tag. Plain iOS Safari ignores it,
+       but an installed home-screen app honours it, which is how Kyle runs
+       this.
+     - touch-action above, which iOS Safari DOES honour.
+     - the gesturestart handler below, for older iOS pinch events. */
+*{-webkit-text-size-adjust:100%;touch-action:pan-x pan-y;}
+html,body{
+  margin:0;padding:0;
+  -webkit-user-select:none;user-select:none;
+  -webkit-touch-callout:none;
+}
+</style>
+<script>
+/* iOS Safari fires its own non-standard gesture events for pinch. Swallow
+   them so a two-finger touch on the card does nothing at all. */
+["gesturestart","gesturechange","gestureend"].forEach(function(g){
+  document.addEventListener(g, function(e){ e.preventDefault(); }, {passive:false});
+});
+</script>
 <title>Mixed Up Golf</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

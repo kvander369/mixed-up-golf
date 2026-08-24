@@ -11,7 +11,25 @@
 const fs = require('fs');
 
 const page = fs.readFileSync('index.html', 'utf8');
-const html = page.split('<script>')[0];
+/* The page carries SEVERAL <script> blocks now (a head script, the app, the
+   service-worker registration). Both of these were hard-coded to block [1]
+   and to "markup = everything before the first script". Adding one small
+   script to the head broke that: block [1] stopped being the app, and the
+   markup collapsed to just the <head>, so controlsFor() would have found ZERO
+   buttons and the suite would have passed while testing nothing.
+   So: markup is everything that is not a script, and the app is the LONGEST
+   script block. Split, never regex - a heredoc once turned an escape into a
+   control character here. */
+function pageParts(page){
+  const parts = page.split('<script>');
+  const blocks = parts.slice(1).map(p => p.split('</script>')[0]);
+  const markup = parts.map((p,i) => i===0 ? p : p.split('</script>').slice(1).join('</script>')).join('');
+  const app = blocks.reduce((a,b) => b.length > a.length ? b : a, '');
+  if(!app.trim()) { console.error('no script block found in index.html'); process.exit(1); }
+  return { markup: markup, app: app };
+}
+const PARTS = pageParts(page);
+const html = PARTS.markup;
 
 function el(tag) {
   return {
@@ -61,9 +79,11 @@ global.document = {
   createElement: el,
   querySelector() { return el('div'); },
   querySelectorAll(sel) { return REG[sel] || []; },
+  /* the page's head script attaches gesture listeners */
+  addEventListener() {}, removeEventListener() {},
 };
 
-let src = page.split('<script>')[1].split('</script>')[0];
+let src = PARTS.app;
 src = src.replace(/\}\)\(\);\s*$/,
   '  module.exports={go:function(s){state.step=s;render();},st:function(){return state;}};\n})();');
 const mod = {};
