@@ -72,6 +72,7 @@ guessed at. Keep doing that — it caught several things reasoning had got wrong
     node skins_test.js               gross only, birdie-or-better, ties knock out
     node pops_separation_test.js     the two stroke allocations stay separate
     node 4score_rule_verify.js       decoded rules reproduce the real Sheet
+    node roster_test.js              the roster keeps its promises
 
 ---
 
@@ -108,6 +109,29 @@ source on 2026-08-23 but **not deployed**. Noted at the top of its
 `SCANNERBOT_STATE.md`.
 
 ---
+
+## The roster (added 2026-08-24)
+
+Kyle's group is saved between rounds, so setting up is four taps instead of
+eight typed fields. **ROSTER** is on the top bar beside Course and Players.
+
+Three rules, all of them load-bearing:
+
+1. **One CH per person, and it is the last one you used.** No stored-versus-
+   today's handicap to reconcile and no save step. Nothing can go stale
+   because nothing is kept in two places.
+2. **The people live in their own storage key** (`mixedUpGolf.people.v1`),
+   not inside the round. "New round - clear everything" wipes scores and
+   never the people.
+3. **Names that reach the card must be distinct.** Kyle has two Marks -
+   Elm is `ChrisB`, Fir is `Mark`. Scoring never cared (it is all
+   by slot index), but the roster keyed on name, so the second Mark could
+   not exist. A duplicate is now refused with a reason.
+
+**The shipped roster is EMPTY, on purpose.** `index.html` is published
+publicly, so seeding it with the real group would put eleven men's names and
+handicaps in a public repo permanently. Kyle builds the list on the phone.
+`defaultPeople()` returns `[]` and must stay that way.
 
 ## Still open
 
