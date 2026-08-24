@@ -496,16 +496,9 @@ html,body{
     color:var(--ink-2);
     white-space:nowrap;
   }
-  /* the (n) beside each name is that player's pops off the low man —
-     the number the hole result is decided on */
-  .hxhead .hxc i{
-    font-style:normal;font-family:var(--f-sans);
-    font-size:12px;font-weight:700;letter-spacing:0;
-    margin-left:3px;
-  }
-  .hxhead .hxc.s12 i{color:var(--live);}
-  .hxhead .hxc.s34 i{color:var(--gold);}
-  /* a hairline under each name shows which side that column belongs to */
+  /* a hairline under each name shows which side that column belongs to.
+     (The (n) pops number that used to sit beside the name was removed
+     2026-08-24 along with the styling it needed.) */
   .hxhead .hxc.s12{box-shadow:inset 0 -3px 0 rgba(76,209,55,.55);}
   .hxhead .hxc.s34{box-shadow:inset 0 -3px 0 rgba(245,213,71,.55);}
 
@@ -556,8 +549,20 @@ html,body{
   .hxrow .sc.pop::after{
     content:"";
     position:absolute;top:0;left:0;
-    width:13px;height:13px;
-    background:#FFFFFF;
+    /* and smaller. Kyle, 2026-08-24: "they kinda dominate". Colour was only
+       half of it - a 13px flag in a 46px cell is a lot of area, and there can
+       be a dozen on screen. 10px cuts the area by 41% on top of the 54% cut in
+       brightness, so a flag reads as a mark in the corner rather than as the
+       loudest thing on the card. It marks a hole; it does not score it. */
+    width:10px;height:10px;
+    /* Kyle, 2026-08-24: "the white chits in the corner really end up lighting
+       up the screen. What if they were light grey instead of white?" - pure
+       white was the brightest thing on a very dark card, and there can be a
+       dozen of them, so they read as glare rather than as marks. This is
+       --ink-2, the grey the app already uses for secondary text, so it is not
+       a new colour: dimmer than white, still clearly lighter than anything
+       around it, and still legible on a won cell's green or gold wash. */
+    background:var(--ink-2);
     clip-path:polygon(0 0, 100% 0, 0 100%);
   }
   /* two shots: same clip, pink so it jumps off a green or gold cell */
@@ -686,26 +691,41 @@ html,body{
      80px, so anything longer than "Blake" was cut with an ellipsis. Two columns
      doubles the room a name gets, which is what lets the type grow: 13px -> 18px
      for the name, 25px -> 29px for the score. Costs one row of height. */
-  .hescores{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:8px 12px 0;}
+  /* FOUR ACROSS, NAME STACKED OVER THE SCORE (Kyle, 2026-08-24: "go back to
+     four across not 2 x 2 ... the names can stack above the score so its not a
+     square but a rectangle").
+
+     The 2x2 version fixed the name size by giving each name half the screen,
+     but it cost a row of height and made the hole screen scroll. A tall narrow
+     cell gets the size back a different way: the name owns its own line, so it
+     only has to fit the COLUMN, not share it with the score.
+
+     18px was picked by working out what fits rather than by eye, and Kyle
+     noting the group uses FIRST NAMES only. At four across a cell is 80-98px
+     depending on the phone, which is 9-11 characters of Barlow Condensed.
+     18px is free - it fits exactly as many characters as 17px at every phone
+     width, and 19px is where one is lost. Every ordinary first name fits;
+     only something like "Christopher" clips, and only on narrow phones.
+     That is a 38% jump on the 13px that started this. */
+  .hescores{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;padding:6px 12px 0;}
   .hecell{
-    display:flex;flex-direction:row;align-items:center;justify-content:space-between;
-    gap:8px;
-    padding:9px 11px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:1px;
+    padding:6px 3px 7px;
     border:1px solid var(--line);border-radius:10px;
     background:var(--row);color:var(--ink);cursor:pointer;
     min-width:0;
   }
   .hecell em{
     font-style:normal;font-family:var(--f-cond);
-    font-size:18px;font-weight:700;letter-spacing:.03em;
+    font-size:18px;font-weight:700;letter-spacing:.02em;
     color:var(--ink-2);
-    text-align:left;flex:1;min-width:0;
+    max-width:100%;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   }
   .hecell em b{color:var(--bar);letter-spacing:-1px;}
   .hecell span{
-    font-size:29px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1;
-    flex-shrink:0;
+    font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1;
   }
   .hecell.empty span{color:#4E4E4E;}
   .hecell.sel{border-color:var(--bar);box-shadow:inset 0 -3px 0 var(--bar);background:var(--row-2);}
@@ -727,7 +747,7 @@ html,body{
   /* Kyle also asked for the score area to be delimited from the keypad. A
      plain line would do it, but the line may as well carry the one thing the
      screen never said out loud: WHOSE score the keypad is about to set. */
-  .hetyping{display:flex;align-items:center;gap:10px;margin:11px 12px 1px;}
+  .hetyping{display:flex;align-items:center;gap:10px;margin:8px 12px 1px;}
   .hetyping::before,.hetyping::after{content:"";height:1px;background:var(--line);flex:1;}
   .hetyping span{
     font-family:var(--f-cond);
@@ -739,10 +759,10 @@ html,body{
   .hetyping strong.t34{color:var(--gold);}
 
   .hepadwrap{padding:5px 12px 0;}
-  .pad.hepad .key{height:43px;font-size:21px;}
-  .pad.hepad{gap:6px;}
+  .pad.hepad .key{height:41px;font-size:21px;}
+  .pad.hepad{gap:5px;}
 
-  .junkgrid{padding:8px 12px 0;display:flex;flex-direction:column;gap:4px;}
+  .junkgrid{padding:6px 12px 0;display:flex;flex-direction:column;gap:3px;}
   .junkrow{display:grid;grid-template-columns:70px repeat(4,1fr);gap:4px;align-items:center;}
   .junklbl{
     font-family:var(--f-cond);
@@ -754,12 +774,12 @@ html,body{
   .junkhdr .junklbl:first-child{text-align:left;}
   .junkbtn{
     position:relative;
-    height: 32px;border-radius:7px;
+    height: 30px;border-radius:7px;
     border:1px solid var(--line);background:var(--row);color:#5A5A5A;
     font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;cursor:pointer;
     padding:0;
   }
-  .junkbtn span{display:block;line-height:30px;}
+  .junkbtn span{display:block;line-height:28px;}
   .junkbtn em{
     position:absolute;top:1px;right:3px;
     font-style:normal;font-size:10px;font-weight:700;
@@ -768,7 +788,7 @@ html,body{
   .junkbtn.on{background:var(--bar);border-color:var(--bar);color:var(--bar-ink);font-weight:700;}
   .junkbtn.on em{color:var(--bar-ink);opacity:.6;}
 
-  .greenies{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:7px 12px calc(10px + env(safe-area-inset-bottom));}
+  .greenies{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:5px 12px calc(8px + env(safe-area-inset-bottom));}
   .gstep{
     background:var(--row);border:1px solid var(--line-soft);border-radius:9px;
     padding:7px 8px;display:flex;flex-direction:column;gap:4px;min-width:0;
@@ -786,7 +806,7 @@ html,body{
   }
   .gctl{display:grid;grid-template-columns:36px 1fr 36px;align-items:center;gap:4px;}
   .gbtn{
-    height: 32px;border-radius:7px;border:1px solid var(--line);
+    height: 30px;border-radius:7px;border:1px solid var(--line);
     background:var(--row-2);color:var(--ink);font-size:19px;line-height:1;cursor:pointer;
   }
   .gval.here{color:var(--bar);}
@@ -1716,23 +1736,22 @@ html,body{
      four scores from the same 3x3 pad (type 6544 and the hole is done),
      junk as one grid, greenies as two steppers.
      --------------------------------------------------------------- */
-  /* THE SIDES ARE THE COLUMNS (Kyle, 2026-08-24: "team 1 on the left side,
-     team 2 on the right").
+  /* THE ORDER THE FOUR CELLS ARE DRAWN IN.
 
-     Going from four cells across to a 2x2 grid quietly changed what a column
-     means. Filled in plain order the sides became ROWS, so each column held
-     one man from each side:
+     Back at four across, plain order is already what Kyle wants - team 1 in
+     the left half, team 2 in the right - matching the Holes grid, the junk
+     grid columns and the greenie steppers, which all run 1 2 3 4.
 
-         1  2        <- was: sides read as rows
-         3  4           and every column was mixed
+         1  2  |  3  4
+         green |  gold
 
-         1  3        <- now: sides read as columns
-         2  4           left column is 1 & 2, right is 3 & 4
-
-     Team 1 on the left also matches the Holes grid, the junk grid columns and
-     the greenie steppers, which all already run 1 2 3 4 - so this is the only
-     block that had to move. */
-  var HE_CELLS = [0,2,1,3];
+     It stays a named constant because the 2x2 experiment showed how easily
+     this goes wrong: filled in plain order there, the sides became ROWS and
+     every COLUMN held one man from each side, while the green/gold colouring
+     said otherwise. Kyle caught that by eye. One constant, one place to
+     change, and the check in the commit that it still covers 0-3 exactly
+     once. */
+  var HE_CELLS = [0,1,2,3];
 
   function renderHoleEntry(){
     var w=document.getElementById("holeUI");
@@ -1756,14 +1775,19 @@ html,body{
     head.appendChild(nav1); head.appendChild(mid); head.appendChild(nav2);
     w.appendChild(head);
 
-    var band=document.createElement("div");
-    band.className="heband"+(pt==="12"?" w12":pt==="34"?" w34":"");
-    band.textContent = !g.ready ? "Course and handicaps needed to score this hole"
-      : pt===null ? "Hole not complete"
-      : pt==="AS" ? "Halved"
-      : pt==="12" ? pname(0)+" & "+pname(1)+" win the hole"
-      : pname(2)+" & "+pname(3)+" win the hole";
-    w.appendChild(band);
+    /* Kyle, 2026-08-24: "you dont need that banner at the top because the
+       colour coded notes who won the hole" - right, the filled cells already
+       say it. But the banner was ALSO the only place the app said "course and
+       handicaps needed", and without that a round with missing handicaps shows
+       four uncoloured cells and no reason why. So it survives for that one
+       case and is gone the rest of the time, which buys back ~36px of the
+       height the bigger names cost. */
+    if(!g.ready){
+      var band=document.createElement("div");
+      band.className="heband";
+      band.textContent="Course and handicaps needed to score this hole";
+      w.appendChild(band);
+    }
 
     var sc=document.createElement("div"); sc.className="hescores";
     for(var i=0;i<4;i++){
@@ -1910,12 +1934,16 @@ html,body{
 
     var head=row("hxhead");
     head.appendChild(cell("Hole","hh"));
-    /* the (n) is coloured by SIDE — green for 1&2, gold for 3&4 — so the two
-       twosomes read at a glance. Separate signal from the neutral pop dots
-       inside the cells. */
+    /* NAME ONLY. The (n) beside each name used to show that player's pops off
+       the low man. Kyle, 2026-08-24: "one can count the chits so we may not
+       need the handicap shown ... just adds noise one can argue" - right, the
+       corner flags down the column already say who is getting a shot and where,
+       hole by hole, which is the form you actually need mid-round. A single
+       total invited an argument it could not settle.
+       The side is still marked: the coloured hairline under each name. */
     for(var i=0;i<4;i++){
       var e=cell("","hh "+(i<2?"s12":"s34"));
-      e.innerHTML=pname(i)+(g.ready?' <i>('+g.pops[i]+')</i>':'');
+      e.textContent=pname(i);
       head.appendChild(e);
     }
     box.appendChild(head);
