@@ -6,7 +6,7 @@
  *
  * Bump CACHE when the app changes — the old cache is deleted on activate.
  */
-const CACHE = 'mixed-up-golf-v8';
+const CACHE = 'mixed-up-golf-v9';
 
 /* The app shell. index.html is one self-contained file, so this is short. */
 const SHELL = [

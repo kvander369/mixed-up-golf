@@ -4,8 +4,11 @@
  *
  *   1. A person's CH is the LAST ONE YOU USED.
  *   2. The people survive "New round - clear everything".
- *   3. Joining the roster is always a deliberate tap. Nothing adds itself.
+ *   3. Joining the list is always a deliberate tap. Nothing adds itself.
  *   4. Two men called Mark are two men, and the card can tell them apart.
+ *
+ * The shipped app has an EMPTY roster - Kyle's group lives only on his phone -
+ * so the suite builds its own, which also proves the setup path works.
  */
 'use strict';
 const fs = require('fs');
@@ -58,8 +61,9 @@ const src = app.replace(/\}\)\(\);\s*$/, `
     today:    function(){ return addTyped(false); },
     keep:     function(){ return addTyped(true); },
     msg:      function(){ return document.getElementById("pickMsg").textContent; },
-    setEdit:  function(v){ pickEditing = v; },
-    rows:     function(){ return document.getElementById("pickList").children; }
+    rows:     function(){ return document.getElementById("pickList").children; },
+    screen:   function(){ renderRoster(); return document.getElementById("rosterUI").children; },
+    rmsg:     function(){ return document.getElementById("rMsg").textContent; }
   };
 })();`);
 
@@ -73,20 +77,29 @@ const T = (name, fn) => {
   catch (e) { fail++; console.log('FAIL  ' + name + '\n      ' + e.message); }
 };
 const eq = (a, b, m) => { if (a !== b) throw new Error((m || '') + '  got ' + JSON.stringify(a) + ', wanted ' + JSON.stringify(b)); };
-const row = n => A.rows().filter(r => (r.dataset.name || (r.children[0] && r.children[0]._text)) === n)[0];
+
+/* a row in the picker sheet */
+const row = n => A.rows().filter(r => r.dataset.name === n)[0];
+/* a row on the Roster screen, and the parts of that screen */
+const part = cls => A.screen().filter(k => k.className === cls)[0];
+const rrow = n => part('rlist').children.filter(r => r.dataset.name === n)[0];
 
 /* ------------------------------------------------------------------ */
 
-/* The SHIPPED app has an empty roster - Kyle's group lives only on his phone.
-   So the suite builds its own, which also proves the setup path works. */
-T('the app ships with nobody on the list', () => {
-  eq(A.people().length, 0, 'empty out of the box');
+/* Start from nothing whichever file this runs against. The MOCK seeds Kyle's
+   real group so he can see it working; the SHIPPED app seeds nobody. That the
+   shipped one really is empty is enforced by port_roster.js, which refuses to
+   write if a real surname appears, and re-checked against the live site after
+   every deploy. */
+T('the suite starts from a clean list', () => {
+  A.people().splice(0);
+  eq(A.people().length, 0, 'nobody');
 });
 
 T('a roster can be built from nothing', () => {
-  [["Avery","9","Avery A"],["Blake","7","Blake B"],["Cody","6","Cody C"],
-   ["Drew","25","Drew D"],["Eli","15","Eli E"],
-   ["ChrisB","15","Chris B"],["Chris","9","Chris C"],["Sy","15","Simon Sy"]]
+  [['Avery', '9', 'Avery A'], ['Blake', '7', 'Blake B'], ['Cody', '6', 'Cody C'],
+   ['Drew', '25', 'Drew D'], ['Eli', '15', 'Eli E'],
+   ['ChrisB', '15', 'Chris B'], ['Chris', '9', 'Chris C'], ['Sy', '15', 'Simon Sy']]
     .forEach(p => A.addP(p[0], p[1], p[2]));
   eq(A.people().length, 8, 'eight added');
   eq(A.find('Sy').full, 'Simon Sy', 'the full name comes along');
@@ -146,7 +159,13 @@ T('the man already in THIS slot is shown, not blocked', () => {
   eq(row('Eli').dataset.note, 'In this slot', 'and marked as being here');
 });
 
-/* ---- guests: nothing joins the roster by itself ---- */
+T('the picker shows the CH with a colon and its own element', () => {
+  A.newRound('all');
+  A.openPick(0);
+  eq(row('Sy').dataset.note, 'Last CH used: 15', 'colon and number');
+});
+
+/* ---- guests: nothing joins the list by itself ---- */
 
 T('"Just today" puts a guest in the slot and NOWHERE else', () => {
   A.newRound('all');
@@ -154,13 +173,13 @@ T('"Just today" puts a guest in the slot and NOWHERE else', () => {
   A.type('Ronnie');
   A.today();
   eq(A.st().roster[0].name, 'Ronnie', 'he is playing');
-  eq(A.find('Ronnie'), null, 'but he is not in the roster');
+  eq(A.find('Ronnie'), null, 'but he is not on the list');
   eq(A.isGuest('Ronnie'), true, 'he is a guest');
 });
 
-T('typing a CH for a guest does NOT sneak him into the roster', () => {
+T('typing a CH for a guest does NOT sneak him onto the list', () => {
   A.remember('Ronnie', '12');
-  eq(A.find('Ronnie'), null, 'still not in the roster');
+  eq(A.find('Ronnie'), null, 'still not on the list');
   eq(A.people().length, 8, 'still eight');
 });
 
@@ -205,9 +224,6 @@ T('a duplicate card name is refused, not silently merged', () => {
 });
 
 T('a second man with the same name in another SLOT is refused too', () => {
-  /* Ziggy on purpose: a name that is in NO roster, so this exercises the
-     slot-collision branch and not the roster-duplicate one. Ronnie was added
-     to the roster by an earlier test, which made him hit the wrong branch. */
   A.newRound('all');
   A.openPick(0);
   A.type('Ziggy');
@@ -220,70 +236,87 @@ T('a second man with the same name in another SLOT is refused too', () => {
   eq(A.msg().indexOf('already called Ziggy') >= 0, true, 'and it says why');
 });
 
-/* ---- pruning ---- */
+/* ---- the Roster screen: one place, where you would look for it ---- */
 
-T('someone can be taken off the list', () => {
-  const before = A.people().length;
+T('the Roster screen lists everyone', () => {
   A.newRound('all');
-  A.setEdit(true);
-  A.openPick(0);
-  const r = row('Eli');
-  eq(!!r, true, 'Chuck has a row in edit mode');
-  r.children[1].onclick();                       /* first tap arms it */
-  eq(r.children[1]._text, 'Sure?', 'the first tap only arms it');
-  r.children[1].onclick();                       /* second tap removes */
-  eq(A.find('Eli'), null, 'Chuck is off the list');
-  eq(A.people().length, before - 1, 'one fewer');
-  A.setEdit(false);
+  const luke = rrow('Avery');
+  eq(!!luke, true, 'Luke has a row');
+  eq(luke.children[0].children[0]._text, 'Avery', 'his card name');
+  eq(luke.children[1].value, '9', 'and the CH he last used');
 });
 
-T('removing someone does not disturb a round in progress', () => {
+T('changing a CH there is what he starts on next round', () => {
+  const r = rrow('Avery');
+  r.children[1].value = '12';
+  r.children[1].oninput();
+  eq(A.find('Avery').hcp, '12', 'the roster took it');
   A.newRound('all');
   A.assign(0, A.find('Avery'));
-  A.setEdit(true);
-  A.openPick(1);
-  const r = row('Avery');
-  r.children[1].onclick(); r.children[1].onclick();
-  eq(A.st().roster[0].name, 'Avery', 'he is still playing today');
-  eq(A.find('Avery'), null, 'but not on the list for next time');
-  A.setEdit(false);
+  eq(A.st().roster[0].hcp, '12', 'and a new round starts him on 12');
 });
 
-/* ---- first-time setup ---- */
-
-const g = id => document.getElementById(id);
-
-T('Edit list can add a man without closing or assigning him', () => {
+T('changing it while he is PLAYING moves the round number too', () => {
   A.newRound('all');
-  A.setEdit(true); A.openPick(0);
-  g('edName').value = 'Tony'; g('edHcp').value = '13'; g('edFull').value = 'Tony Soprano';
-  g('edAdd').onclick();
+  A.assign(3, A.find('Blake'));
+  const r = rrow('Blake');
+  r.children[1].value = '8';
+  r.children[1].oninput();
+  eq(A.find('Blake').hcp, '8', 'the roster took it');
+  eq(A.st().roster[3].hcp, '8', 'and so did the round in progress');
+});
+
+T('the screen says who is playing today, so removing is never a surprise', () => {
+  const r = rrow('Blake');
+  eq(r.children[0].children[1].children[0]._text.indexOf('Playing today') >= 0, true,
+     'it is marked on his row');
+});
+
+T('taking someone off takes two taps', () => {
+  const before = A.people().length;
+  const r = rrow('Cody');
+  r.children[2].onclick();
+  eq(r.children[2]._text, 'Sure?', 'the first tap only arms it');
+  r.children[2].onclick();
+  eq(A.find('Cody'), null, 'the second takes him off');
+  eq(A.people().length, before - 1, 'one fewer');
+});
+
+T('the Roster screen adds a man, and clears itself for the next', () => {
+  const before = A.people().length;
+  const add = part('radd');
+  add.children[2].children[0].value = 'Tony';   /* name */
+  add.children[2].children[1].value = '13';     /* CH */
+  add.children[3].value = 'Tony Soprano';       /* full */
+  add.children[4].onclick();                    /* Add to roster */
   eq(A.find('Tony').hcp, '13', 'he is on the list with his CH');
   eq(A.find('Tony').full, 'Tony Soprano', 'and his full name');
-  eq(A.st().roster[0].name, '', 'he was NOT put in the slot');
-  eq(g('edName').value, '', 'the field cleared, ready for the next man');
-  eq(g('pickSheet').hidden, false, 'and the sheet stayed open');
-  A.setEdit(false);
+  eq(A.people().length, before + 1, 'one more');
+  eq(part('radd').children[2].children[0].value, '', 'the field is clear for the next man');
 });
 
-T('Edit list refuses a duplicate the same way', () => {
-  A.setEdit(true); A.openPick(0);
-  g('edName').value = 'Tony';
-  g('edAdd').onclick();
-  eq(A.people().filter(p => p.name === 'Tony').length, 1, 'still only one Tony');
-  eq(A.msg().indexOf('already a Tony') >= 0, true, 'and it says why');
-  A.setEdit(false);
+T('the Roster screen refuses a duplicate name too', () => {
+  const before = A.people().length;
+  const add = part('radd');
+  add.children[2].children[0].value = 'Drew';
+  add.children[4].onclick();
+  eq(A.people().length, before, 'nobody was added');
+  eq(A.rmsg().indexOf('already a Drew') >= 0, true, 'and it says why');
 });
 
 /* LAST - this one empties the roster, which is how the app ships */
-T('an empty roster tells you what to do instead of sitting blank', () => {
+T('an empty roster points at the Roster button', () => {
   A.people().splice(0);
-  A.setEdit(false); A.openPick(0);
+  A.openPick(0);
   eq(A.rows().length, 1, 'one line, not an empty box');
-  eq(A.rows()[0]._text.indexOf('Nobody on the list yet') >= 0, true, 'it points at Edit list');
-  A.setEdit(true); A.openPick(0);
-  eq(A.rows()[0]._text.indexOf('Add your group below') >= 0, true, 'and says what to type first');
-  A.setEdit(false);
+  eq(A.rows()[0]._text.indexOf('Tap Roster at the top') >= 0, true, 'it says where to go');
+});
+
+T('and the Roster screen itself says what to do when empty', () => {
+  const kids = A.screen();
+  const empty = kids.filter(k => k.className === 'rempty')[0];
+  eq(!!empty, true, 'there is a message');
+  eq(empty._text.indexOf('stays on this phone') >= 0, true, 'and it says where the list lives');
 });
 
 console.log('');

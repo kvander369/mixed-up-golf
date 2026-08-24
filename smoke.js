@@ -90,7 +90,7 @@ const mod = {};
 new Function('module', src)(mod);
 const A = mod.exports;
 
-const SCREENS = ['pars', 'ranks', 'players', 'scores', 'holes', 'results', 'hole'];
+const SCREENS = ['pars', 'ranks', 'players', 'roster', 'scores', 'holes', 'results', 'hole'];
 let fail = 0;
 const T = (name, fn) => {
   try { fn(); console.log('PASS  ' + name); }
