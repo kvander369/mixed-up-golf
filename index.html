@@ -491,19 +491,31 @@
     position:relative;
   }
   .hxrow .sc.miss{color:#4E4E4E;}
-  .hxrow .sc.won12{color:var(--live);font-weight:700;}
-  .hxrow .sc.won34{color:var(--gold);font-weight:700;}
+  /* Who won the hole is a FILLED CELL, not just coloured type. Both cells of
+     the winning twosome light up, so a won hole reads as one solid block of
+     colour down the card instead of two numbers you have to hunt for.
+     Kyle, 2026-08-24: "I am having trouble seeing who won holes". */
+  .hxrow .sc.won12{
+    color:var(--live);font-weight:700;
+    background:rgba(76,209,55,.20);
+    box-shadow:inset 0 0 0 1px rgba(76,209,55,.30);
+  }
+  .hxrow .sc.won34{
+    color:var(--gold);font-weight:700;
+    background:rgba(245,213,71,.18);
+    box-shadow:inset 0 0 0 1px rgba(245,213,71,.30);
+  }
 
   /* Pops are marked on the cell they apply to, in a DIFFERENT visual channel
-     from who won the hole:
-        hue (green / gold on the number) = who won
-        white badge + lifted cell        = shots given on this hole
-     Never tint a pop green or gold, or it reads as a side.
+     from who won the hole. Two signals, two channels, no overlap:
+        cell fill (green / gold)  = who won the hole
+        corner flag (white/pink)  = shots given on this hole
      A count, not dots — two shots is common (any pops total over 18) and dots
-     were far too small to read on a fairway. */
-  /* One shot: a white clipped corner. Two shots: a bigger corner in ice blue —
-     deliberately neither green nor gold, so it can never read as a side. */
-  .hxrow .sc.pop{ background:rgba(255,255,255,.07); }
+     were far too small to read on a fairway.
+     Kyle, 2026-08-24: the flag USED to come with a cell background as well, and
+     that background is what fought the win colour. The flag stays; the tint is
+     gone. The flag colours are deliberately neither green nor gold, so a flag
+     can never be misread as a side. */
   .hxrow .sc.pop::after{
     content:"";
     position:absolute;top:0;left:0;
@@ -511,9 +523,7 @@
     background:#FFFFFF;
     clip-path:polygon(0 0, 100% 0, 0 100%);
   }
-  /* two shots: same size clip, pink so it jumps. Pink is neither green nor
-     gold, so it can never read as a side. */
-  .hxrow .sc.pop2{ background:rgba(255,92,160,.13); }
+  /* two shots: same clip, pink so it jumps off a green or gold cell */
   .hxrow .sc.pop2::after{ background:#FF5CA0; }
 
   /* Out / In / Total: same size as the score rows, WHITE — green and gold are
@@ -654,6 +664,10 @@
   .hecell.sel{border-color:var(--bar);box-shadow:inset 0 -3px 0 var(--bar);background:var(--row-2);}
   .hecell.won12 span{color:var(--live);}
   .hecell.won34 span{color:var(--gold);}
+  /* same rule as the Holes grid: if the number went green or gold, the cell
+     goes with it */
+  .hecell.won12{background:rgba(76,209,55,.16);border-color:rgba(76,209,55,.45);}
+  .hecell.won34{background:rgba(245,213,71,.14);border-color:rgba(245,213,71,.45);}
 
   .hepadwrap{padding:7px 12px 0;}
   .pad.hepad .key{height:43px;font-size:21px;}

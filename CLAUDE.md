@@ -77,16 +77,20 @@ guessed at. Keep doing that — it caught several things reasoning had got wrong
 
 ## Deploying a change
 
-There is no git auth set up here. Upload changed files through the GitHub web UI:
+**Git auth is set up (2026-08-24).** `gh` is logged in as `kvander369` with
+`repo` scope, ADMIN on the repo, and `origin` is
+`https://github.com/kvander369/mixed-up-golf.git`. A change is now:
 
-    github.com/kvander369/mixed-up-golf/upload/main
+    git add -A && git commit -m "..." && git push
+
+GitHub Pages redeploys from `main` on its own. The web upload UI at
+`github.com/kvander369/mixed-up-golf/upload/main` is still there as a fallback.
 
 Then on the phone: close the app fully and reopen twice, so the service worker
 swaps to the new cache version.
 
-`gh` 2.98.0 is installed at `C:\Program Files\GitHub CLI\gh.exe` but not logged
-in — the device-flow login was abandoned mid-setup. Finishing `gh auth login`
-would make changes a one-line push.
+`gh` 2.98.0 is installed at `C:\Program Files\GitHub CLI\gh.exe`. The device-flow login that was abandoned
+mid-setup has since been finished, so pushing works from here.
 
 **The `!` prefix in Claude Code runs Bash, not PowerShell.** `& "C:\Program
 Files\..."` is a syntax error there; use `"/c/Program Files/GitHub CLI/gh.exe"`.
@@ -107,8 +111,11 @@ source on 2026-08-23 but **not deployed**. Noted at the top of its
 
 ## Still open
 
-- **Hand-check a round.** The rules reproduce the 4Score Sheet's own columns
-  exactly, but that is the code checking the code. Kyle entering an
-  already-settled round and confirming the app agrees is the proof that counts.
-  Not yet done.
-- Offline was verified — Kyle confirmed it opens in airplane mode.
+- Nothing blocking.
+
+## Closed
+
+- **Hand-check a round — DONE 2026-08-24.** Kyle entered a card from the old
+  4Score/AppSheet app and the two agreed. That was the last thing standing
+  between "the code checks the code" and "the app can settle a bet."
+- **Offline — DONE.** Kyle confirmed it opens in airplane mode.

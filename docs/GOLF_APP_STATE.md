@@ -13,9 +13,11 @@ mode**. The service worker is doing its job; the app needs no connection.
 
 That was the highest-consequence unknown in the whole project and it is closed.
 
-Still open: a hand-check of one already-settled round against the app's output.
-The rules reproduce the 4Score Sheet's own columns exactly
-(`4score_rule_verify.js`), but that is the code checking the code.
+**2026-08-24 — the hand-check is done.** Kyle entered a card from the old
+4Score/AppSheet app and the app agreed. The rules already reproduced the
+Sheet's own columns (`4score_rule_verify.js`), but that was the code checking
+the code; this is a human checking the code, and it passed. Nothing blocking
+remains.
 
 ---
 
