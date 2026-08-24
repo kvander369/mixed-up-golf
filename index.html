@@ -365,6 +365,127 @@ html,body{
   .pin::placeholder{color:#5A5A5A;}
   .pin.hcp{text-align:center;font-variant-numeric:tabular-nums;font-weight:600;}
   .pin:focus{border-color:var(--bar);outline:none;}
+  /* ---------- roster: tap a name, do not type one ---------- */
+  .pin.pick{
+    text-align:left;cursor:pointer;
+    display:flex;align-items:center;
+    font-family:var(--f-sans);
+  }
+  .pin.pick.empty{color:#5A5A5A;}
+  .pin.pick:active{border-color:var(--bar);}
+
+  .picktitle{display:flex;align-items:baseline;justify-content:space-between;gap:10px;}
+  .pickedit{
+    border:0;background:transparent;color:var(--ink-3);
+    font-family:var(--f-cond);
+    font-size:14px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    cursor:pointer;padding:4px 2px;flex-shrink:0;
+  }
+  .pickedit.on{color:var(--bar);}
+  /* an editing row is a div, not a button - a button inside a button is not
+     valid markup and phones disagree about which one a tap belongs to */
+  .personrow{
+    width:100%;
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:9px 10px 9px 14px;border-radius:10px;
+    border:1px dashed var(--line);background:transparent;
+  }
+  .personrow strong{
+    font-family:var(--f-cond);font-size:19px;font-weight:700;letter-spacing:.03em;
+    color:var(--ink-2);
+  }
+  .removebtn{
+    flex-shrink:0;padding:8px 13px;border-radius:8px;
+    border:1px solid #6B2020;background:transparent;color:#FF6B5A;
+    font-family:var(--f-cond);
+    font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    cursor:pointer;
+  }
+  .removebtn.armed{background:#5A1414;color:#FFD9D9;border-color:#8A2222;}
+
+  .picklist{
+    display:flex;flex-direction:column;gap:6px;
+    max-height:44vh;overflow-y:auto;padding:2px 0;
+  }
+  .personbtn{
+    width:100%;text-align:left;
+    display:flex;flex-direction:column;gap:1px;
+    padding:10px 14px 11px;border-radius:10px;
+    border:1px solid var(--line);background:var(--row-2);color:var(--ink);
+    cursor:pointer;
+  }
+  .ptop{display:flex;align-items:baseline;justify-content:space-between;gap:10px;}
+  /* who that actually is - so you never guess which Mark you just tapped */
+  .pfull{font-size:12px;color:#6E6E6E;}
+  .personbtn strong{
+    font-family:var(--f-cond);font-size:19px;font-weight:700;letter-spacing:.03em;
+  }
+  .personbtn span{font-size:13px;color:var(--ink-3);white-space:nowrap;}
+  .personbtn .pchp{
+    font-size:18px;font-weight:700;color:var(--ink-2);
+    font-variant-numeric:tabular-nums;margin-left:3px;
+  }
+  .personbtn:disabled{opacity:.32;cursor:default;}
+  .personbtn.here{border-color:var(--bar);}
+  .personbtn.here span{color:var(--bar);}
+
+  .picknewname{margin-top:9px;width:100%;}
+  /* .picknew is display:flex, which beats the browser's own [hidden] rule */
+  .picknewname[hidden],.picknew[hidden],.pickclear[hidden]{display:none;}
+  .picknew{display:flex;gap:6px;margin-top:6px;}
+  .pickadd{
+    flex:1;min-width:0;
+    padding:12px 10px;border-radius:9px;border:0;
+    background:var(--bar);color:var(--bar-ink);
+    font-family:var(--f-cond);
+    font-size:15px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+    cursor:pointer;
+  }
+  /* Kyle, 2026-08-24: "when someone is added I should have an option to make
+     it permanent or not. Dont default to permanent addition." So the filled
+     button - the one a thumb reaches for without reading - is the TEMPORARY
+     one. Joining the roster is the deliberate act, and it looks like one. */
+  .pickadd.ghost{
+    background:transparent;color:var(--ink-2);
+    border:1px solid var(--line);
+  }
+  .pickpromote{
+    margin-top:7px;padding:11px;width:100%;
+    border:1px solid var(--bar-dim);border-radius:10px;background:transparent;
+    color:var(--bar);
+    font-family:var(--f-cond);
+    font-size:14px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+    cursor:pointer;
+  }
+  .pickpromote[hidden]{display:none;}
+  .pickmsg{
+    margin-top:8px;padding:10px 12px;border-radius:9px;
+    background:#2A2612;border:1px solid #6B5A18;color:var(--gold);
+    font-size:14px;line-height:1.4;
+  }
+  .pickmsg[hidden]{display:none;}
+  /* Setting up for the first time means adding eleven men. Doing that through
+     the normal add button would mean opening this sheet eleven times, because
+     that one assigns somebody and closes. This block belongs to Edit list: it
+     adds to the roster ONLY, stays open, and clears itself for the next one. */
+  .editadd{display:flex;flex-direction:column;gap:6px;margin-top:9px;}
+  .editadd[hidden]{display:none;}
+  .editrow{display:flex;gap:6px;}
+  .editrow .pin{flex:1;min-width:0;}
+  .editrow .pin.hcp{flex:0 0 64px;}
+  .editempty{
+    padding:16px 4px;text-align:center;color:var(--ink-3);
+    font-size:14px;line-height:1.5;
+  }
+  .pickclear{
+    margin-top:7px;padding:11px;width:100%;
+    border:1px dashed var(--line);border-radius:10px;background:transparent;
+    color:var(--ink-3);
+    font-family:var(--f-cond);
+    font-size:14px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    cursor:pointer;
+  }
+
   .phead{
     display:grid;grid-template-columns:26px 1fr 84px;gap:10px;
     padding:0 16px 6px;
@@ -1145,6 +1266,38 @@ html,body{
   <div class="homebar"></div>
 
   <!-- New round. Destructive, so it asks first and says exactly what goes. -->
+  <div class="sheetwrap" id="pickSheet" hidden>
+    <div class="sheetbg" id="pickBg"></div>
+    <div class="sheet">
+      <div class="picktitle">
+        <div class="sheettitle">Player <span id="pickNo">1</span></div>
+        <button class="pickedit" id="pickEdit">Edit list</button>
+      </div>
+      <div class="sheetsub" id="pickSub">Their handicap comes with them &mdash; the one you used last time.</div>
+      <div class="picklist" id="pickList"></div>
+      <input class="pin picknewname" id="pickNewName" type="text" placeholder="Someone else &mdash; type a name"
+             autocapitalize="words" autocomplete="off" spellcheck="false">
+      <div class="editadd" id="editAdd" hidden>
+        <div class="editrow">
+          <input class="pin" id="edName" type="text" placeholder="Name on the card"
+                 autocapitalize="words" autocomplete="off" spellcheck="false">
+          <input class="pin hcp" id="edHcp" type="text" inputmode="numeric" placeholder="CH">
+        </div>
+        <input class="pin" id="edFull" type="text" placeholder="Who that is (optional)"
+               autocapitalize="words" autocomplete="off" spellcheck="false">
+        <button class="pickadd" id="edAdd">Add to roster</button>
+      </div>
+      <div class="picknew" id="picknewRow">
+        <button class="pickadd" id="pickToday">Just today</button>
+        <button class="pickadd ghost" id="pickKeep">Add to roster</button>
+      </div>
+      <div class="pickmsg" id="pickMsg" hidden></div>
+      <button class="pickpromote" id="pickPromote" hidden>Keep <span id="pickPromoteName"></span> in the roster</button>
+      <button class="pickclear" id="pickClear">Leave this slot empty</button>
+      <button class="sheetcancel" id="pickCancel">Cancel</button>
+    </div>
+  </div>
+
   <div class="sheetwrap" id="newSheet" hidden>
     <div class="sheetbg" id="sheetBg"></div>
     <div class="sheet">
@@ -1184,6 +1337,81 @@ html,body{
 
   var KEY = "mixedUpGolf.v1";
   var OLD_KEYS = ["fourScoreAway.mock.v2"];
+
+  /* THE REAL APP SHIPS WITH AN EMPTY ROSTER, ON PURPOSE.
+     Kyle, 2026-08-24: "good keep only on my phone". index.html is published at
+     github.com/kvander369/mixed-up-golf, so seeding this with the real group
+     would put eleven men's names and course handicaps into a public repository
+     - permanently, because git keeps history even if a later commit removes
+     them. The roster is built on the phone instead, where it lives in that
+     phone's storage and never leaves the device.
+     Tap "Edit list" in the player picker to add people. */
+  function defaultPeople(){ return []; }
+
+  /* ---------------- THE ROSTER ----------------
+     Eight regulars, kept between rounds so setting up is four taps instead of
+     eight typed fields. Two rules decide the whole design:
+
+     1. IT LIVES IN ITS OWN STORAGE KEY, not inside the round. "New round -
+        clear everything" wipes scores, course and slots; it must never wipe
+        the people. Separate keys make that true by construction rather than
+        by remembering to be careful.
+
+     2. ONE HANDICAP PER PERSON, AND IT IS THE LAST ONE YOU USED.
+        Kyle, 2026-08-24: "whatever the last handicap used for the person
+        should remain there as the default entry on a new round". So there is
+        no stored-versus-todays handicap to reconcile and no save step: type a
+        new number on the Players screen and that IS the person's number from
+        then on. Nothing can go stale because nothing is kept in two places.
+
+     Identity is the name, trimmed and lower-cased. For eight men on first-name
+     terms that is the right key. */
+  var PKEY = "mixedUpGolf.people.v1";
+  var people = [];
+
+  function loadPeople(){
+    try{
+      var raw = localStorage.getItem(PKEY);
+      if(raw){ var v = JSON.parse(raw); if(v && v.length) people = v; }
+    }catch(e){ people = []; }
+    if(!people.length) people = defaultPeople();
+  }
+  function savePeople(){
+    try{ localStorage.setItem(PKEY, JSON.stringify(people)); }catch(e){}
+  }
+  function keyOf(n){ return (n||"").trim().toLowerCase(); }
+  function findPerson(n){
+    var k = keyOf(n);
+    for(var i=0;i<people.length;i++) if(keyOf(people[i].name)===k) return people[i];
+    return null;
+  }
+  /* Called every time a handicap is typed, so "last used" is always true for
+     anyone IN the roster.
+
+     It must NEVER create a person. A guest who is only playing today gets a
+     handicap typed on the Players screen like everyone else, and if that
+     silently added him to the roster then "Just today" would be a lie and the
+     list would fill up with one-off names. Joining the roster happens in
+     exactly two places, both of them a deliberate tap: "Add to roster" and
+     "Keep <name> in the roster". */
+  function rememberHcp(name, hcp){
+    var p = findPerson(name);
+    if(!p) return;
+    p.hcp = hcp;
+    savePeople();
+  }
+  /* the only two doors into the roster */
+  function addPerson(name, hcp, full){
+    if(!keyOf(name)) return null;
+    var p = findPerson(name);
+    if(!p){
+      p = { name:name.trim(), full:(full||"").trim(), hcp:hcp||"" };
+      people.push(p); savePeople();
+    }
+    return p;
+  }
+  function isGuest(name){ return !!keyOf(name) && !findPerson(name); }
+
   /* Roster: typed on the Players tab, saved like everything else.
      Seeded with the README's sample team 1 so the mockup has something to score. */
   /* The app starts empty. Nothing carries over from a previous round unless
@@ -1631,29 +1859,31 @@ html,body{
           slot.className="pslot";
           slot.textContent=i+1;
 
-          var nm=document.createElement("input");
-          nm.className="pin"; nm.type="text";
-          nm.placeholder="Name";
-          nm.value=state.roster[i].name;
-          nm.autocapitalize="words"; nm.autocomplete="off"; nm.spellcheck=false;
-          /* iOS labels the return key from this, and Enter walks to the next
-             field instead of doing nothing */
-          nm.setAttribute("enterkeyhint","next");
-          nm.dataset.seq=(i*2);
-          nm.oninput=function(){ state.roster[i].name=nm.value; save(); };
-          nm.onkeydown=function(e){ if(e.key==="Enter"){ e.preventDefault(); advance(i*2); } };
+          /* TAP, DO NOT TYPE. The name is now a button that opens the roster.
+             Typing four to eight names every round was thumb-work, and it is
+             where a handicap typo gets in - and a wrong handicap is a money
+             bug here, because it moves the low man and the low man decides
+             every hole of the inside game. */
+          var nm=document.createElement("button");
+          nm.className="pin pick"+(state.roster[i].name?"":" empty");
+          nm.textContent=state.roster[i].name || "Choose a player";
+          nm.onclick=function(){ openPick(i); };
 
           var hc=document.createElement("input");
           hc.className="pin hcp"; hc.type="text";
           hc.inputMode="numeric"; hc.placeholder="—";
           hc.value=state.roster[i].hcp;
+          /* the only typed field left, so the tab sequence is one per player */
           hc.setAttribute("enterkeyhint", i===7 ? "done" : "next");
-          hc.dataset.seq=(i*2+1);
+          hc.dataset.seq=i;
           hc.oninput=function(){
             hc.value=hc.value.replace(/[^0-9]/g,"").slice(0,2);
-            state.roster[i].hcp=hc.value; save();
+            state.roster[i].hcp=hc.value;
+            /* and THIS is what makes it the last used number */
+            rememberHcp(state.roster[i].name, hc.value);
+            save();
           };
-          hc.onkeydown=function(e){ if(e.key==="Enter"){ e.preventDefault(); advance(i*2+1); } };
+          hc.onkeydown=function(e){ if(e.key==="Enter"){ e.preventDefault(); advance(i); } };
 
           r.appendChild(slot); r.appendChild(nm); r.appendChild(hc);
           w.appendChild(r);
@@ -2366,6 +2596,225 @@ html,body{
   }
 
   var sheet=document.getElementById("newSheet");
+  /* ---------------- the picker ---------------- */
+  var pickTarget = 0;
+  var pickEditing = false;
+  function pickEl(id){ return document.getElementById(id); }
+
+  function openPick(slot){
+    pickTarget = slot;
+    pickEl("pickNo").textContent = slot+1;
+    var list = pickEl("pickList");
+    list.innerHTML = "";
+    if(!people.length){
+      var empty = document.createElement("div");
+      empty.className = "editempty";
+      empty.textContent = pickEditing
+        ? "Add your group below. Name on the card first - short, and what he is actually called."
+        : "Nobody on the list yet. Tap Edit list to add your group.";
+      list.appendChild(empty);
+    }
+    people.forEach(function(p){
+      if(pickEditing){
+        /* EDIT MODE - the list is for pruning, not for choosing.
+           Removing takes TWO taps: the first arms the button, the second does
+           it. No dialog and no undo needed, and a thumb brushing the screen
+           cannot delete anybody. */
+        var row = document.createElement("div");
+        row.className = "personrow";
+        var rn = document.createElement("strong");
+        rn.textContent = p.name;
+        var rm = document.createElement("button");
+        rm.className = "removebtn";
+        rm.textContent = "Remove";
+        rm.onclick = function(){
+          if(rm.className.indexOf("armed") < 0){
+            rm.className = "removebtn armed";
+            rm.textContent = "Sure?";
+            return;
+          }
+          for(var q=0;q<people.length;q++){
+            if(keyOf(people[q].name)===keyOf(p.name)){ people.splice(q,1); break; }
+          }
+          savePeople();
+          openPick(slot);          /* redraw in place */
+        };
+        row.appendChild(rn); row.appendChild(rm);
+        list.appendChild(row);
+        return;
+      }
+
+      /* nobody can be in two slots at once - say where they already are
+         rather than silently refusing the tap */
+      var takenBy = -1;
+      for(var k=0;k<8;k++){
+        if(k!==slot && keyOf(state.roster[k].name)===keyOf(p.name)) takenBy = k;
+      }
+      var here = keyOf(state.roster[slot].name)===keyOf(p.name);
+      var b = document.createElement("button");
+      b.className = "personbtn" + (here?" here":"");
+      var nameEl = document.createElement("strong");
+      nameEl.textContent = p.name;
+      var noteEl = document.createElement("span");
+      /* read by the tests, so they do not depend on how the row is laid out */
+      b.dataset.name = p.name;
+      /* Kyle, 2026-08-24: "dont like the 'plays off'. Put Last CH used" -
+         and he is right, "plays off" is what a handicap IS, which is the one
+         thing this line does not mean. The number shown is simply the last
+         course handicap entered for that man, and saying so makes it obvious
+         it can be changed today. */
+      /* Kyle, 2026-08-24: a colon, and the number bigger. It is the only part
+         of this line anybody reads - "Last CH used" is the label, the number is
+         the thing you are checking before you tap. */
+      var noteText = takenBy>=0 ? "Already player "+(takenBy+1)
+                   : here       ? "In this slot"
+                   : p.hcp      ? "Last CH used: "+p.hcp
+                   :              "No CH yet";
+      b.dataset.note = noteText;
+      if(takenBy<0 && !here && p.hcp){
+        noteEl.textContent = "Last CH used: ";
+        var chEl = document.createElement("b");
+        chEl.className = "pchp";
+        chEl.textContent = p.hcp;
+        noteEl.appendChild(chEl);
+      } else {
+        noteEl.textContent = noteText;
+      }
+      var top = document.createElement("span");
+      top.className = "ptop";
+      top.appendChild(nameEl); top.appendChild(noteEl);
+      b.appendChild(top);
+      if(p.full && p.full !== p.name){
+        var fullEl = document.createElement("span");
+        fullEl.className = "pfull";
+        fullEl.textContent = p.full;
+        b.appendChild(fullEl);
+      }
+      if(takenBy>=0) b.disabled = true;
+      else b.onclick = function(){ assignPerson(slot, p); };
+      list.appendChild(b);
+    });
+    pickEl("pickNewName").value = "";
+    pickSay("");
+    var cur = state.roster[slot];
+    var guest = isGuest(cur.name);
+
+    /* while pruning, everything that ASSIGNS somebody gets out of the way -
+       the sheet does one job at a time */
+    pickEl("pickEdit").className   = "pickedit" + (pickEditing?" on":"");
+    pickEl("pickEdit").textContent = pickEditing ? "Done" : "Edit list";
+    pickEl("pickSub").textContent  = pickEditing
+      ? "Taking someone off the list does not change a round already in progress."
+      : "Their handicap comes with them - the one you used last time.";
+    pickEl("editAdd").hidden       = !pickEditing;
+    pickEl("picknewRow").hidden    = pickEditing;
+    pickEl("pickNewName").hidden   = pickEditing;
+    pickEl("pickPromote").hidden   = pickEditing || !guest;
+    pickEl("pickClear").hidden     = pickEditing;
+    if(guest) pickEl("pickPromoteName").textContent = cur.name;
+    pickEl("pickSheet").hidden = false;
+  }
+  function closePick(){
+    pickEditing = false;
+    pickEl("pickSheet").hidden = true;
+  }
+
+  function pickSay(text){
+    var m = pickEl("pickMsg");
+    m.textContent = text || "";
+    m.hidden = !text;
+  }
+
+  /* TWO MEN CALLED MARK (Kyle, 2026-08-24: "what if we have two Marks?").
+     Worth being exact about what was and was not broken:
+
+       SCORING was never at risk. Every score is stored and read by SLOT
+       NUMBER - state.scores[i+"-front"], playerScores(i) - and the skins tie
+       test counts how many players share the low score, it does not compare
+       names. Two Marks were always scored as two men.
+
+       THE SCREEN was ambiguous: two columns both saying "Chris", so you could
+       not read which one won a skin.
+
+       THE ROSTER was actually broken: a person is keyed by name, so the
+       second Mark could not exist at all - "Add to roster" would silently
+       hand back the first one.
+
+     One rule fixes all three: NAMES IN PLAY MUST BE DISTINCT. Refuse the
+     duplicate and say why, rather than merging two men in silence. The group
+     says "Chris B" and "Mark S" out loud anyway. */
+  function addTyped(permanent){
+    var nm = (pickEl("pickNewName").value||"").trim();
+    if(!nm) return;
+
+    var existing = findPerson(nm);
+    if(existing){
+      pickSay("There is already a " + existing.name + " on the list. Tap him above if "
+            + "that is who you mean, or add this one as something that tells them "
+            + "apart - Chris B, Mark S.");
+      return;
+    }
+    for(var k=0;k<8;k++){
+      if(k!==pickTarget && keyOf(state.roster[k].name)===keyOf(nm)){
+        pickSay("Player " + (k+1) + " is already called " + state.roster[k].name
+              + ". Two men with the same name on one card cannot be told apart on "
+              + "the scorecard - give this one something different.");
+        return;
+      }
+    }
+
+    var p = permanent ? addPerson(nm, "") : { name:nm, hcp:"" };
+    assignPerson(pickTarget, p);
+  }
+
+  function assignPerson(slot, p){
+    state.roster[slot].name = p.name;
+    state.roster[slot].hcp  = p.hcp || "";
+    save(); closePick(); render();
+  }
+
+  function wirePick(){
+    pickEl("edAdd").onclick = function(){
+      var nm = (pickEl("edName").value||"").trim();
+      if(!nm){ pickSay("Give him a name for the card first."); return; }
+      if(findPerson(nm)){
+        pickSay("There is already a " + findPerson(nm).name + " on the list. Two men "
+              + "cannot share a name on the card - try ChrisB, or Sy.");
+        return;
+      }
+      var hcp = (pickEl("edHcp").value||"").replace(/[^0-9]/g,"").slice(0,2);
+      addPerson(nm, hcp, (pickEl("edFull").value||"").trim());
+      pickEl("edName").value = "";
+      pickEl("edHcp").value  = "";
+      pickEl("edFull").value = "";
+      pickSay("");
+      openPick(pickTarget);      /* stays open, ready for the next man */
+    };
+    pickEl("pickEdit").onclick = function(){
+      pickEditing = !pickEditing;
+      openPick(pickTarget);
+    };
+    pickEl("pickBg").onclick     = closePick;
+    pickEl("pickCancel").onclick = closePick;
+    pickEl("pickClear").onclick  = function(){
+      state.roster[pickTarget].name = "";
+      state.roster[pickTarget].hcp  = "";
+      save(); closePick(); render();
+    };
+    /* today only: he goes in the slot and nowhere else */
+    pickEl("pickToday").onclick = function(){ addTyped(false); };
+    /* permanent: he joins the eight */
+    pickEl("pickKeep").onclick  = function(){ addTyped(true); };
+    /* and a guest already in a slot can be kept afterwards, so choosing
+       "Just today" is never a dead end */
+    pickEl("pickPromote").onclick = function(){
+      var r = state.roster[pickTarget];
+      if(!isGuest(r.name)) return;
+      addPerson(r.name, r.hcp);
+      closePick(); render();
+    };
+  }
+
   function closeSheet(){ sheet.hidden=true; }
   document.getElementById("newRoundBtn").onclick=function(){ sheet.hidden=false; };
   document.getElementById("sheetCancel").onclick=closeSheet;
@@ -2416,6 +2865,8 @@ html,body{
   var KNOWN={pars:1,ranks:1,players:1,scores:1,holes:1,hole:1,results:1};
   if(!KNOWN[state.step]) state.step="holes";
 
+  loadPeople();
+  wirePick();
   load();
   if(!KNOWN[state.step]) state.step="holes";
   render();
