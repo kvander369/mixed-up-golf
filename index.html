@@ -681,22 +681,32 @@ html,body{
   .heband.w12{background:#0F2409;color:var(--live);border-color:var(--bar-dim);}
   .heband.w34{background:#2A2612;color:var(--gold);border-color:#6B5A18;}
 
-  .hescores{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;padding:7px 12px 0;}
+  /* Kyle, 2026-08-24: "the names are really small". They were, and the reason
+     was WIDTH, not font size - four cells across a phone leaves each name about
+     80px, so anything longer than "Blake" was cut with an ellipsis. Two columns
+     doubles the room a name gets, which is what lets the type grow: 13px -> 18px
+     for the name, 25px -> 29px for the score. Costs one row of height. */
+  .hescores{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:8px 12px 0;}
   .hecell{
-    display:flex;flex-direction:column;align-items:center;gap:1px;
-    padding:5px 2px 6px;
-    border:1px solid var(--line);border-radius:9px;
+    display:flex;flex-direction:row;align-items:center;justify-content:space-between;
+    gap:8px;
+    padding:9px 11px;
+    border:1px solid var(--line);border-radius:10px;
     background:var(--row);color:var(--ink);cursor:pointer;
     min-width:0;
   }
   .hecell em{
     font-style:normal;font-family:var(--f-cond);
-    font-size:13px;font-weight:600;letter-spacing:.04em;
-    color:var(--ink-3);
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;
+    font-size:18px;font-weight:700;letter-spacing:.03em;
+    color:var(--ink-2);
+    text-align:left;flex:1;min-width:0;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   }
   .hecell em b{color:var(--bar);letter-spacing:-1px;}
-  .hecell span{font-size:25px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.05;}
+  .hecell span{
+    font-size:29px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1;
+    flex-shrink:0;
+  }
   .hecell.empty span{color:#4E4E4E;}
   .hecell.sel{border-color:var(--bar);box-shadow:inset 0 -3px 0 var(--bar);background:var(--row-2);}
   .hecell.won12 span{color:var(--live);}
@@ -706,7 +716,29 @@ html,body{
   .hecell.won12{background:rgba(76,209,55,.16);border-color:rgba(76,209,55,.45);}
   .hecell.won34{background:rgba(245,213,71,.14);border-color:rgba(245,213,71,.45);}
 
-  .hepadwrap{padding:7px 12px 0;}
+  /* Kyle, 2026-08-24: the selection border wears the SIDE's colour - green for
+     1 & 2, gold for 3 & 4 - the same two colours the Holes grid and the header
+     already use. Three classes deep, so a selected cell still shows its
+     selection on a hole that has been won and .won12 is also painting the
+     border. */
+  .hecell.sel.p12{border-color:var(--live);box-shadow:inset 0 -3px 0 var(--live);}
+  .hecell.sel.p34{border-color:var(--gold);box-shadow:inset 0 -3px 0 var(--gold);}
+
+  /* Kyle also asked for the score area to be delimited from the keypad. A
+     plain line would do it, but the line may as well carry the one thing the
+     screen never said out loud: WHOSE score the keypad is about to set. */
+  .hetyping{display:flex;align-items:center;gap:10px;margin:11px 12px 1px;}
+  .hetyping::before,.hetyping::after{content:"";height:1px;background:var(--line);flex:1;}
+  .hetyping span{
+    font-family:var(--f-cond);
+    font-size:13px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;
+    color:var(--ink-3);white-space:nowrap;
+  }
+  .hetyping strong{color:var(--bar);font-weight:700;letter-spacing:.07em;}
+  .hetyping strong.t12{color:var(--live);}
+  .hetyping strong.t34{color:var(--gold);}
+
+  .hepadwrap{padding:5px 12px 0;}
   .pad.hepad .key{height:43px;font-size:21px;}
   .pad.hepad{gap:6px;}
 
@@ -1684,6 +1716,24 @@ html,body{
      four scores from the same 3x3 pad (type 6544 and the hole is done),
      junk as one grid, greenies as two steppers.
      --------------------------------------------------------------- */
+  /* THE SIDES ARE THE COLUMNS (Kyle, 2026-08-24: "team 1 on the left side,
+     team 2 on the right").
+
+     Going from four cells across to a 2x2 grid quietly changed what a column
+     means. Filled in plain order the sides became ROWS, so each column held
+     one man from each side:
+
+         1  2        <- was: sides read as rows
+         3  4           and every column was mixed
+
+         1  3        <- now: sides read as columns
+         2  4           left column is 1 & 2, right is 3 & 4
+
+     Team 1 on the left also matches the Holes grid, the junk grid columns and
+     the greenie steppers, which all already run 1 2 3 4 - so this is the only
+     block that had to move. */
+  var HE_CELLS = [0,2,1,3];
+
   function renderHoleEntry(){
     var w=document.getElementById("holeUI");
     w.innerHTML="";
@@ -1721,15 +1771,25 @@ html,body{
         var cellb=document.createElement("button");
         var v=state.scores[p+(h<9?"-front":"-back")][h%9];
         var side = pt==="12"&&p<2 ? " won12" : pt==="34"&&p>=2 ? " won34" : "";
-        cellb.className="hecell"+(state.holeSel===p?" sel":"")+(v===null?" empty":"")+side;
+        cellb.className="hecell"+(p<2?" p12":" p34")
+                       +(state.holeSel===p?" sel":"")+(v===null?" empty":"")+side;
         var shots = (g.ready && ranks[h]!==null) ? strokesFor(g.pops[p], ranks[h]) : 0;
         cellb.innerHTML="<em>"+pname(p)+(shots?" <b>"+Array(shots+1).join("•")+"</b>":"")+"</em>"
                        +"<span>"+(v===null?"·":v)+"</span>";
         cellb.onclick=function(){ state.holeSel=p; render(); };
         sc.appendChild(cellb);
-      })(i);
+      })(HE_CELLS[i]);
     }
     w.appendChild(sc);
+
+    /* the rule that separates the card from the keypad, and says who the
+       keypad is typing for */
+    var strip=document.createElement("div"); strip.className="hetyping";
+    var who=document.createElement("span");
+    who.innerHTML="Typing &nbsp;<strong class='"+(state.holeSel<2?"t12":"t34")
+                 +"'>"+pname(state.holeSel)+"</strong>";
+    strip.appendChild(who);
+    w.appendChild(strip);
 
     var pw=document.createElement("div"); pw.className="hepadwrap";
     var pad=document.createElement("div"); pad.className="pad hepad";
