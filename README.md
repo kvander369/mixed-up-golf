@@ -67,10 +67,17 @@ Kyle's head; the app colours holes.
     node 4score_rule_verify.js       decoded rules reproduce the real Sheet
     node roster_test.js              the roster keeps its promises
 
-Six suites, 75 checks, no framework and no dependencies — each one drives the
+Six suites, 76 checks, no framework and no dependencies — each one drives the
 real app against a DOM stub. They catch what a syntax check cannot: a deleted
 function still being called, a handler wired to an element that no longer
 exists.
+
+## Which version am I running?
+
+The bottom of the Players screen shows it. The number is not written into the
+page — it is asked of the service worker that is serving you, so it cannot
+disagree with what is actually installed. "not installed" means no service
+worker has taken over yet.
 
 ## Editing it
 

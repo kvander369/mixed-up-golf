@@ -3,7 +3,7 @@
 Read this first, every session. Then `docs/GOLF_APP_STATE.md` for where things
 stand, and `RESTORE.md` if the machine or the folder is new.
 
-**Current as of 2026-08-28: live at v9, six suites / 75 checks all green,
+**Current as of 2026-08-28: live at v14, six suites / 76 checks all green,
 nothing blocking.**
 
 ---
@@ -78,7 +78,7 @@ guessed at. Keep doing that — it caught several things reasoning had got wrong
     node 4score_rule_verify.js       decoded rules reproduce the real Sheet
     node roster_test.js              the roster keeps its promises
 
-Six suites, 75 checks. All green as of 2026-08-28. Run them all — they are fast,
+Six suites, 76 checks. All green as of 2026-08-28. Run them all — they are fast,
 and two of them once passed while silently testing nothing (see below).
 
 **A test that passes by testing nothing is worse than one that fails.** Adding a
@@ -110,8 +110,21 @@ GitHub Pages redeploys from `main` on its own. The web upload UI at
 Then on the phone: close the app fully and reopen twice, so the service worker
 swaps to the new cache version.
 
+**A push is not instantly live. Two delays, in order:**
+
+1. **GitHub's CDN holds files for 10 minutes** (`Cache-Control: max-age=600`).
+   Fetch too soon and you get the OLD file however many times you try - which
+   looks exactly like a failed deploy. To check past it, add a junk query
+   string: `curl "https://kvander369.github.io/mixed-up-golf/sw.js?x=123"`.
+   To see whether the deploy has even run:
+   `gh api repos/kvander369/mixed-up-golf/pages/builds/latest`.
+2. **Then the phone** needs a full close-and-reopen, twice, to swap caches.
+
+This has now caused three rounds of "not updating on my phone". It is almost
+never a broken deploy; it is one of these two waits.
+
 **To check the phone actually updated, look at the bottom of the Players
-screen.** It shows the version - v12, and so on. The number is not written in
+screen.** It shows the version - v14, and so on. The number is not written in
 `index.html`; the page asks the service worker that is serving it and the worker
 answers out of its own `CACHE` string, so the stamp cannot drift from what is
 really installed. "not installed" means no service worker has taken over yet.

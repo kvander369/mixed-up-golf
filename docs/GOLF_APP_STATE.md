@@ -4,7 +4,7 @@ Written 2026-08-23, current as of **2026-08-28**. **Read this first** when
 picking the golf app back up.
 
 > **Where it stands in one line:** built, deployed, hand-checked against a real
-> card, and in use. Live at v9. Six test suites, 75 checks, all passing.
+> card, and in use. Live at v14. Six test suites, 76 checks, all passing.
 > Nothing blocking.
 Design decisions live in `GOLF_PWA_PART1.md` and `GOLF_PWA_PART2_RULES.md`;
 this file is where things stand and what to do next.
@@ -117,7 +117,7 @@ renamed with it.
 | `sw.js` | Cache-first service worker. `CACHE` is the only string an installed phone compares |
 | `manifest.webmanifest` | Name, icons, standalone display, theme colour |
 | `icon-192.png`, `icon-512.png` | PWA icons — Ernie on brand green `#8FD974` |
-| `smoke.js` | Renders every screen and fires every control against a DOM stub — 18 checks |
+| `smoke.js` | Renders every screen and fires every control against a DOM stub — 19 checks |
 | `live_test.js` | Change one score, everything downstream updates — 5 checks |
 | `skins_test.js` | Gross only, birdie-or-better, ties knock out — 9 checks |
 | `pops_separation_test.js` | Guards the two different stroke allocations (see below) — 7 checks |
@@ -131,7 +131,7 @@ Four files are **gitignored on purpose** and a fresh clone will not have them:
 `RESTORE.md` says how to get each one back.
 
 Run all six suites after any change to `index.html`. As of 2026-08-28 they are
-75 checks and all green.
+76 checks and all green.
 
 **Nothing has a build step.** Open Question 2 in `GOLF_PWA_PART1.md` is answered:
 this is one HTML file, so it can live in Drive with everything else and no local
@@ -376,6 +376,36 @@ they found ZERO controls and passed while testing nothing. They now use
 `pageParts()`: longest script block is the app, markup is everything that is not
 a script. Worth remembering — a test that passes by testing nothing is worse
 than one that fails.
+
+---
+
+## The version stamp — added 2026-08-28 (v12), made readable (v13, v14)
+
+Small line at the bottom of the Players screen showing which version the phone
+is running. Kyle: *"how do I know I am on version 11"* — and before this the
+only answers were curling the live site or hunting for a visual tell.
+
+**Where the number comes from is the whole design.** It is NOT a constant in
+`index.html`. That would be a second copy to keep in step with `sw.js`, and a
+stamp that can be wrong is worse than no stamp — it would say v14 while the
+phone served v13, which is the exact confusion it exists to end. Instead the
+page asks the service worker that is serving it (`postMessage("version")`) and
+the worker answers out of its own `CACHE` string. One string, one source.
+
+- It asks **once, at boot**, so the number describes the worker that served
+  THIS page load. A phone that picks up a new version in the background keeps
+  showing the old number until reopened — correct, because the old version is
+  what is still on screen.
+- **"not installed"** means no service worker has taken over yet: first ever
+  load, or opened as a plain file. That is an answer, not an error.
+- `smoke.js` asserts it renders and is not blank. That assertion was verified
+  by deliberately breaking the stamp and watching the test fail — this project
+  has already shipped two suites that passed while testing nothing.
+
+**It took three goes to make it visible,** which is the lesson worth keeping:
+11px in `#5A5A5A` on a near-black ground is invisible on a phone in daylight,
+and `--ink-2` at 15px was not much better. It is now plain white at 20px. A
+line you consult once a week has to be legible when you consult it.
 
 ---
 
