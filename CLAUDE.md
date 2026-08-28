@@ -1,6 +1,10 @@
 # CLAUDE.md — Mixed Up Golf
 
-Read this first, every session. Then `docs/GOLF_APP_STATE.md`.
+Read this first, every session. Then `docs/GOLF_APP_STATE.md` for where things
+stand, and `RESTORE.md` if the machine or the folder is new.
+
+**Current as of 2026-08-28: live at v9, six suites / 75 checks all green,
+nothing blocking.**
 
 ---
 
@@ -73,6 +77,16 @@ guessed at. Keep doing that — it caught several things reasoning had got wrong
     node pops_separation_test.js     the two stroke allocations stay separate
     node 4score_rule_verify.js       decoded rules reproduce the real Sheet
     node roster_test.js              the roster keeps its promises
+
+Six suites, 75 checks. All green as of 2026-08-28. Run them all — they are fast,
+and two of them once passed while silently testing nothing (see below).
+
+**A test that passes by testing nothing is worse than one that fails.** Adding a
+`<script>` to `<head>` for the zoom fix broke `smoke.js` and `live_test.js`
+exactly that way: both assumed script `[1]` was the app and that the markup was
+everything before the first script, so they found ZERO controls and reported
+PASS. They now use `pageParts()` — longest script block is the app, markup is
+everything that is not a script. If you add another script tag, check them.
 
 ---
 
@@ -148,7 +162,14 @@ handicaps in a public repo permanently. Kyle builds the list on the phone.
 
 ## Still open
 
-- Nothing blocking.
+- **Nothing blocking.**
+- One slow-burn unknown: **iOS storage eviction.** Home-screen PWAs are
+  *believed* exempt from Safari's ~7-day eviction of site data, never verified
+  here. If that is wrong, the app could open after a winter off with the roster
+  gone. Bounded — retype eleven names — but a nasty clubhouse surprise. The only
+  honest test is time; record the answer in `docs/GOLF_APP_STATE.md`.
+- Kyle still has to add his group on the phone: **Roster → Add someone**,
+  remembering `ChrisB` (Elm) and `Mark` (Fir).
 
 ## Closed
 
@@ -156,3 +177,6 @@ handicaps in a public repo permanently. Kyle builds the list on the phone.
   4Score/AppSheet app and the two agreed. That was the last thing standing
   between "the code checks the code" and "the app can settle a bet."
 - **Offline — DONE.** Kyle confirmed it opens in airplane mode.
+- **Backup — DONE 2026-08-28.** The GitHub remote is the backup; push after
+  every commit. `RESTORE.md` records what a clone does not bring back, and that
+  the round and roster live in the phone's storage and nowhere else.

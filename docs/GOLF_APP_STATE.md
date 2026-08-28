@@ -1,6 +1,11 @@
 # Golf app — living state
 
-Written 2026-08-23. **Read this first** when picking the golf app back up.
+Written 2026-08-23, current as of **2026-08-28**. **Read this first** when
+picking the golf app back up.
+
+> **Where it stands in one line:** built, deployed, hand-checked against a real
+> card, and in use. Live at v9. Six test suites, 75 checks, all passing.
+> Nothing blocking.
 Design decisions live in `GOLF_PWA_PART1.md` and `GOLF_PWA_PART2_RULES.md`;
 this file is where things stand and what to do next.
 
@@ -79,16 +84,20 @@ Edit `index.html` in the local folder, then either push with git or upload
 through the GitHub web UI. **Bump `CACHE` in `sw.js`** or installed phones keep
 serving the old version from cache.
 
-The Drive copy `golf_app_mockup.html` is the artifact-shaped version (no
-`<head>`). Keep them in step or retire one — two copies will drift.
+There was once a Drive copy, `golf_app_mockup.html` — the artifact-shaped
+version with no `<head>`. Searched for on 2026-08-28 and not found, so the
+drift risk it carried is gone. **`index.html` in this folder is the only copy.**
+If one ever reappears on Drive, retire it rather than keeping two in step.
 
-### GitHub CLI — installed but NOT logged in
+### GitHub CLI — logged in since 2026-08-24
 
-`gh` 2.98.0 is installed (`C:\Program Files\GitHub CLI\gh.exe`). The device-flow
-login was abandoned: the browser would not launch from the embedded terminal,
-and GitHub added sudo email verification on top, so the files went up through the
-web UI instead. Finish `gh auth login` at a quiet moment and future changes
-become a one-line push.
+Authenticated as `kvander369` with `repo` scope and ADMIN on the repo. The
+device-flow login that was abandoned during the first deploy has since been
+finished, so a change is now `git add -A && git commit -m "..." && git push`.
+
+**Push after every commit** (rule added 2026-08-28). The remote is this
+project's only backup, and to Kyle — checking the live site on his phone — an
+unpushed commit is indistinguishable from a change that was never made.
 
 Note for next time: the `!` prefix in Claude Code runs **Bash**, not PowerShell —
 `& "C:\Program Files\..."` is a syntax error there. Use
@@ -98,18 +107,31 @@ Note for next time: the `!` prefix in Claude Code runs **Bash**, not PowerShell 
 
 ## What exists right now
 
+These are the real filenames. The mockup-era names (`golf_app_mockup.html`,
+`golf_app_smoke.js`) are gone — it became a deployed app and the files were
+renamed with it.
+
 | File | What it is |
 |---|---|
-| `golf_app_mockup.html` | **The app.** Single self-contained HTML file, no build step, no dependencies. Runs offline as-is. |
-| `golf_app_smoke.js` | Renders every screen and clicks every control against a DOM stub. `node golf_app_smoke.js` |
-| `4score_rule_verify.js` | Proves the decoded 4Score rules reproduce the real Sheet's own columns |
-| `pops_separation_test.js` | Guards the two different stroke allocations (see below) |
-| `ccw_draw_fairness_test.js` | 2M-draw statistical check on the CCW random team draw |
-| `make_test_extracts.js` | Regenerates the extracts `ScannerBot_CCW_tests.js` needs |
+| `index.html` | **The app.** One self-contained file, no build step, no dependencies. Runs offline as-is. |
+| `sw.js` | Cache-first service worker. `CACHE` is the only string an installed phone compares |
+| `manifest.webmanifest` | Name, icons, standalone display, theme colour |
+| `icon-192.png`, `icon-512.png` | PWA icons — Ernie on brand green `#8FD974` |
+| `smoke.js` | Renders every screen and fires every control against a DOM stub — 18 checks |
+| `live_test.js` | Change one score, everything downstream updates — 5 checks |
+| `skins_test.js` | Gross only, birdie-or-better, ties knock out — 9 checks |
+| `pops_separation_test.js` | Guards the two different stroke allocations (see below) — 7 checks |
+| `4score_rule_verify.js` | Decoded 4Score rules reproduce the real Sheet's own columns — 9 checks |
+| `roster_test.js` | The roster keeps its promises — 27 checks |
+| `CLAUDE.md` | Read first, every session |
+| `RESTORE.md` | What a clone does NOT bring back, and where the data actually lives |
 
-The live mockup is published at
-`https://claude.ai/code/artifact/a8efe6e7-bde6-4930-a249-4fd60b295dfd`
-(private to Kyle's account). Republishing the same scratchpad file keeps that URL.
+Four files are **gitignored on purpose** and a fresh clone will not have them:
+`RESUME-Claude.bat`, `seat-check.ps1`, `icon.png`, `mixedupgolf.ico`.
+`RESTORE.md` says how to get each one back.
+
+Run all six suites after any change to `index.html`. As of 2026-08-28 they are
+75 checks and all green.
 
 **Nothing has a build step.** Open Question 2 in `GOLF_PWA_PART1.md` is answered:
 this is one HTML file, so it can live in Drive with everything else and no local
@@ -241,19 +263,19 @@ Sized 58px wide, cropped to 55px tall to trim the long neck stroke to a stub.
 - **Scores above 9 cannot be entered.** Deliberate.
 - **Pops markers are never green or gold** — white clipped corner for one shot,
   pink for two. Green/gold mean who won the hole and nothing else.
-- **App starts empty.** No roster carries over except via New Round.
+- **App starts empty — but the PEOPLE do not.** Since the roster (2026-08-24)
+  the group lives in its own storage key and survives "New round — clear
+  everything". The ROUND still starts empty. See the roster section below.
 - **First-time reassurances stripped.** Kyle: *"if the app works, which it will,
   no need to tell me every letter is saved."*
 
 ---
 
-## OPEN — the live bug
+## CLOSED 2026-08-23 — the demo-round bug
 
-**Kyle reports "New Round › Fill a demo round" does nothing in his browser.**
-
-Status: not reproduced. `golf_app_smoke.js` renders every screen and fires every
-control's real handler, all passing. CSS brace balance verified. All
-`getElementById` / `querySelector` targets verified present.
+**Kyle reported "New Round › Fill a demo round" did nothing in his browser.**
+Fixed the same day, and the app has been in real use since. It is kept here
+because the cause is the standing hazard of this codebase, not a one-off.
 
 Two real bugs of this class were already found and fixed today, both caused by
 **over-matching regexes during refactors**:
@@ -262,13 +284,19 @@ Two real bugs of this class were already found and fixed today, both caused by
 2. `renderHoleEntry()` swallowed whole by the Pops-removal regex → tapping a
    hole did nothing.
 
-Lesson recorded: **stop editing this file with broad `perl -0pi` regexes.** Two
-functions and nearly 10KB were destroyed that way. Use targeted edits, and run
-`node golf_app_smoke.js` after every change.
+Lesson recorded, and it is rule 1 of `CLAUDE.md`: **never edit this file with
+broad regex replacements.** Two functions and nearly 10KB were destroyed that
+way, and both survived a syntax check to fail at runtime. Targeted edits only,
+and run the suites after every change.
 
-Latest build adds an on-screen red error bar (`#errbar`) plus `window.onerror`,
-so the next failure reports its own message instead of dying silently. **Next
-step: have Kyle refresh and read what the bar says.**
+This has since bitten twice more in the same shape — a port script that nearly
+published the real roster because its end-anchor swept up too much, and two test
+suites that quietly stopped testing anything. Every edit script in this project
+now fails loudly unless its pattern matches exactly once.
+
+The build carries an on-screen red error bar (`#errbar`) plus `window.onerror`,
+so a failure reports its own message instead of dying silently. That is what
+turned this from a guessing game into a fix, and it stays in.
 
 Also added: a guard that resets `state.step` to `holes` if a saved round names a
 screen that no longer exists — the removed Pops tab was a candidate for exactly
@@ -276,41 +304,90 @@ this, and would have produced a blank screen on load.
 
 ---
 
-## STATUS CHANGE 2026-08-23 — this is now intended to REPLACE 4Score
+## STATUS CHANGE 2026-08-23 — this REPLACED 4Score, and it did
 
 Kyle: *"I will probably never use the 4Score app again and just use this. It's
 much nicer."*
 
-That moves the goalposts. It is no longer a mockup that has to look right; it is
-software a round of golf and real money will depend on. Two consequences:
+That moved the goalposts at the time: no longer a mockup that has to look right,
+but software a round of golf and real money depends on. It set two conditions,
+**both since met**:
 
-**1. The offline gap is now the blocking issue, not a nice-to-have.** The app
-currently loads from a claude.ai URL. Once loaded it runs fully offline, but a
-cold start with no signal — the exact away-course case it was built for — fails.
-Nothing else matters until it installs to the home screen and opens without a
-connection. See items 1–3 below.
-
-**2. It needs one real hand-check before it settles a bet.** The rules were
-verified against the 4Score Sheet's own columns (`4score_rule_verify.js`), but
-that is the code checking the code. Kyle should enter a round he has already
-settled by hand and confirm the app agrees — the same open item
-`SCANNERBOT_STATE.md` still carries for CCW.
-
-Until both are done, treat it as very good scaffolding, not a replacement.
+1. **Offline.** DONE — installed to the home screen and confirmed opening in
+   airplane mode, 2026-08-23.
+2. **One real hand-check.** DONE 2026-08-24 — Kyle entered a card from the old
+   4Score/AppSheet app and the two agreed. That is a human checking the code,
+   not the code checking the code.
 
 ---
 
-## What is left before this is a real app
+## The roster — added 2026-08-24
 
-1. **Service worker + manifest** so it installs to the home screen and truly
-   works offline.
-2. **Hosting.** It needs a URL to install from. Kyle's decision — and note he is
-   in no hurry to share it with his group (*"I like being the one to hold all the
-   cards"*), so a private host is fine.
-3. **`viewport-fit=cover`** in the real `index.html` — the safe-area CSS is
-   already written and is inert without it. See Build notes in
-   `GOLF_PWA_PART1.md`.
-4. **Verify the iOS storage claim.** Highest-consequence unknown: home-screen
-   PWAs are believed exempt from Safari's ~7-day eviction, unverified. If wrong,
-   the app may not open after a winter off.
-5. **Hand-check a real card** end to end against the results.
+Setting up used to be eight typed fields every round. Now it is four taps.
+**ROSTER** sits on the top bar beside Course and Players; the full rules are in
+`CLAUDE.md`, and `roster_test.js` guards them with 27 checks. The three that
+carry weight:
+
+1. **One CH per person, and it is the last one you used.** No stored-versus-
+   today's handicap to reconcile and no save step — nothing can go stale
+   because nothing is kept in two places. This matters more than it looks: a
+   wrong handicap moves the low man, and the low man sets every pop in the
+   inside game.
+2. **People live in their own key** (`mixedUpGolf.people.v1`), not inside the
+   round. "New round — clear everything" wipes scores and never the people.
+3. **Names on the card must be distinct.** Kyle has two Marks — Elm is
+   `ChrisB`, Fir is `Mark`. Scoring never cared (it is all by slot index)
+   but the roster keyed on name, so the second Mark could not exist. A duplicate
+   is now refused with a reason.
+
+**The shipped roster is EMPTY, on purpose.** `index.html` is published publicly,
+so seeding it would put eleven men's names and handicaps into a public repo
+permanently. `defaultPeople()` returns `[]` and must stay that way. Kyle builds
+the list on the phone.
+
+---
+
+## Screen work — 2026-08-24 to 2026-08-27
+
+All from Kyle using it on a real phone, in a real round.
+
+- **Won holes read at a glance.** The winning cell now takes a green or gold
+  wash, not just coloured type. The pops tint that used to sit behind it was
+  fighting that colour and is gone — but the **corner flags stay** (white clip
+  for one shot, pink for two). They were dimmed and shrunk after Kyle:
+  *"the white chits in the corner really end up lighting up the screen"*.
+- **Hole entry got taller.** Four across, first name stacked above the score so
+  each cell is a rectangle not a square, with a divider between the names and
+  the keypad. Team 1 on the LEFT in green, team 2 on the RIGHT in gold.
+- **`HE_CELLS` is a named constant, and that is deliberate.** A 2x2 grid filled
+  in plain order silently put one man from each side in every column while the
+  colours said otherwise. Kyle caught it by eye. Naming the order stopped it
+  coming back.
+- **The handicap left the Holes header.** Kyle: *"one can count the chits."*
+- **Zoom is off entirely.** Fast score entry double-taps the same key — golf
+  scores repeat — which iOS reads as zoom. Killed with `touch-action`,
+  `maximum-scale=1`, and swallowed `gesturestart/change/end`. Also
+  `user-select:none` to stop the text loupe.
+
+**Adding a head `<script>` for that broke two test suites silently.** Both took
+script `[1]` as the app and everything-before-the-first-script as the markup, so
+they found ZERO controls and passed while testing nothing. They now use
+`pageParts()`: longest script block is the app, markup is everything that is not
+a script. Worth remembering — a test that passes by testing nothing is worse
+than one that fails.
+
+---
+
+## Still open
+
+**One thing, and it is a slow-burn unknown, not a bug.**
+
+**iOS storage eviction.** Home-screen PWAs are *believed* exempt from Safari's
+roughly 7-day eviction of site data, but this has never been verified here. If
+that belief is wrong, the app may open after a winter off with the roster gone.
+The consequence is bounded — retype eleven names, and `RESTORE.md` says so
+outright — but it would be a nasty surprise in a clubhouse. The honest test is
+time: check it after a long gap and record the answer here.
+
+Everything else on the old "what is left" list is done: service worker and
+manifest, hosting, `viewport-fit=cover`, and the hand-check.

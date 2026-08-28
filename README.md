@@ -23,6 +23,16 @@ typed in after the round, and the catch-up path if a hole gets missed live.
 **Course / Players** — set once before the round. CCW's pars and white-tee
 rankings are loaded by default.
 
+**Roster** — the group, saved between rounds, so setting up is four taps
+instead of eight typed fields. Each person carries one course handicap: the
+last one you used. It is not a second copy to reconcile — change it here and
+that is what he starts on next round. The people live in their own storage,
+so "new round" clears the scores and never the group.
+
+**It ships with an empty roster on purpose.** This repository is public, so
+nobody's name or handicap is committed to it. The list is built on the phone
+and stays on that phone.
+
 ## Rules it implements
 
 Decoded from the group's own Google Sheet and verified against it, not guessed.
@@ -50,10 +60,17 @@ Kyle's head; the app colours holes.
 
 ## Running the tests
 
-    node smoke.js
+    node smoke.js                    every screen renders, every control fires
+    node live_test.js                change a score, everything downstream updates
+    node skins_test.js               gross only, birdie-or-better, ties knock out
+    node pops_separation_test.js     the two stroke allocations stay separate
+    node 4score_rule_verify.js       decoded rules reproduce the real Sheet
+    node roster_test.js              the roster keeps its promises
 
-Renders every screen and fires every control against a DOM stub. Catches
-runtime errors a syntax check cannot.
+Six suites, 75 checks, no framework and no dependencies — each one drives the
+real app against a DOM stub. They catch what a syntax check cannot: a deleted
+function still being called, a handler wired to an element that no longer
+exists.
 
 ## Editing it
 
@@ -61,7 +78,7 @@ runtime errors a syntax check cannot.
 
 **Do not edit it with broad regex replacements.** Two `perl -0pi` one-liners
 destroyed whole functions during development; both passed a syntax check and
-failed only at runtime. Make targeted edits and run `node smoke.js` after each.
+failed only at runtime. Make targeted edits and run the suites after each.
 
 After changing the app, bump `CACHE` in `sw.js` so installed phones pick up the
 new version.
