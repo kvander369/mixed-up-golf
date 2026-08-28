@@ -3,6 +3,13 @@
 What it takes to make this project live again on a new machine. The repo
 restores the files; this restores the system around them.
 
+**History note:** the repository was deleted and recreated on 2026-08-28 to
+purge real names from old commits, so every SHA predating that is dead. Two
+verified bundles sit in `C:\Users\vande\Claude\Projects\` -
+`mixed-up-golf-BEFORE-rewrite-2026-08-27.bundle` (the original, names intact,
+keep it OFF GitHub) and `mixed-up-golf-CLEAN-2026-08-28.bundle` (what is
+published now). Restore either with `git clone <bundle> <folder>`.
+
 **The remote is the backup.** `https://github.com/kvander369/mixed-up-golf.git`
 holds everything that matters. A commit that has not been pushed exists in one
 place only — see the push rule in `CLAUDE.md`.

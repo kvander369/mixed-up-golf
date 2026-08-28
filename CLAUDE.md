@@ -118,6 +118,19 @@ Files\..."` is a syntax error there; use `"/c/Program Files/GitHub CLI/gh.exe"`.
 
 ---
 
+**The history was rewritten and the repo recreated on 2026-08-28.** Every
+commit has a new SHA, and no commit from before that date resolves any more -
+if an old note cites one, that is why. The reason: the test fixture, the demo
+card and some docs carried the real group's names and handicaps, and one of
+those men holds public office. A force-push alone was not enough - GitHub keeps
+orphaned objects reachable by SHA - so the repository was deleted and recreated
+with the clean history. Bundles of both the old and the new history are in
+`C:\Users\vande\Claude\Projects\`.
+
+**Never commit a real name.** Invented people (Avery, Blake, Cody, Drew, Eli,
+Chris, ChrisB, Sy) stand in throughout the tests and the demo card. Kyle's own
+name is fine - he is the commit author and the owner of the repository.
+
 **Keep private things out by name, in `.gitignore`, never by memory.** This repo
 is public. `.gitignore` has no effect on a file git already tracks - that is how
 `seat-check.ps1` reached GitHub on 2026-08-27 despite a commit saying it was
