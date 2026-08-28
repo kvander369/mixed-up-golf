@@ -84,6 +84,12 @@ guessed at. Keep doing that — it caught several things reasoning had got wrong
 
     git add -A && git commit -m "..." && git push
 
+**Commit after a change is verified, then `git push`. Every time.** A commit
+left sitting on this machine is not a backup and is not deployed - it looks to
+Kyle, checking on his phone, exactly like a change that was never made. This is
+also how the project is backed up: the GitHub remote IS the backup, so an
+unpushed commit exists in one place only.
+
 GitHub Pages redeploys from `main` on its own. The web upload UI at
 `github.com/kvander369/mixed-up-golf/upload/main` is still there as a fallback.
 
@@ -95,6 +101,13 @@ mid-setup has since been finished, so pushing works from here.
 
 **The `!` prefix in Claude Code runs Bash, not PowerShell.** `& "C:\Program
 Files\..."` is a syntax error there; use `"/c/Program Files/GitHub CLI/gh.exe"`.
+
+---
+
+**Keep private things out by name, in `.gitignore`, never by memory.** This repo
+is public. `.gitignore` has no effect on a file git already tracks - that is how
+`seat-check.ps1` reached GitHub on 2026-08-27 despite a commit saying it was
+kept out. To stop tracking one: `git rm --cached <file>`, then commit.
 
 ---
 
