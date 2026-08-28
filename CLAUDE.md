@@ -110,6 +110,12 @@ GitHub Pages redeploys from `main` on its own. The web upload UI at
 Then on the phone: close the app fully and reopen twice, so the service worker
 swaps to the new cache version.
 
+**To check the phone actually updated, look at the bottom of the Players
+screen.** It shows the version - v12, and so on. The number is not written in
+`index.html`; the page asks the service worker that is serving it and the worker
+answers out of its own `CACHE` string, so the stamp cannot drift from what is
+really installed. "not installed" means no service worker has taken over yet.
+
 `gh` 2.98.0 is installed at `C:\Program Files\GitHub CLI\gh.exe`. The device-flow login that was abandoned
 mid-setup has since been finished, so pushing works from here.
 

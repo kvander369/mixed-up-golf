@@ -6,7 +6,7 @@
  *
  * Bump CACHE when the app changes — the old cache is deleted on activate.
  */
-const CACHE = 'mixed-up-golf-v11';
+const CACHE = 'mixed-up-golf-v12';
 
 /* The app shell. index.html is one self-contained file, so this is short. */
 const SHELL = [
@@ -31,6 +31,13 @@ self.addEventListener('activate', e => {
       .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
+});
+
+/* "What version is actually serving me?" - the stamp on the Players screen.
+   Answering out of CACHE means the number on screen cannot drift from the
+   number that decides what this phone is running. */
+self.addEventListener('message', e => {
+  if (e.data === 'version' && e.source) e.source.postMessage({ version: CACHE });
 });
 
 self.addEventListener('fetch', e => {

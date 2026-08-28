@@ -120,5 +120,21 @@ T('four-player round renders', () => {
   SCREENS.forEach(A.go);
 });
 
+/* The version stamp is the only thing on screen that answers "did my phone
+   actually update?". If it silently stopped rendering, nobody would notice
+   until the next time that question mattered - which is exactly when it is
+   too late to find out. */
+T('the Players screen carries a version stamp', () => {
+  A.go('players');
+  const hit = (function find(n) {
+    if (!n || !n.children) return null;
+    if (n.className === 'vstamp') return n;
+    for (const kid of n.children) { const r = find(kid); if (r) return r; }
+    return null;
+  })(document.getElementById('playersUI'));
+  if (!hit) throw new Error('no .vstamp on the Players screen');
+  if (!hit._text) throw new Error('the stamp is blank');
+});
+
 console.log(fail ? `\n${fail} FAILED` : '\nEvery screen and every control is clean.');
 process.exit(fail ? 1 : 0);

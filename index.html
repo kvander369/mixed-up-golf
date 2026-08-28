@@ -1034,6 +1034,16 @@ html,body{
     opacity:.9;
   }
 
+  /* the version stamp - deliberately quiet. It is for settling "did the phone
+     update?", not for reading during a round. */
+  .vstamp{
+    text-align:center;
+    padding:0 0 10px;
+    font-size:11px;letter-spacing:.06em;
+    color:#5A5A5A;
+    font-variant-numeric:tabular-nums;
+  }
+
   /* ---------- results ---------- */
   .results{display:none;padding:4px 0 10px;}
   .results.on{display:block;}
@@ -1445,6 +1455,40 @@ html,body{
      Seeded with the README's sample team 1 so the mockup has something to score. */
   /* The app starts empty. Nothing carries over from a previous round unless
      you deliberately keep it — see New Round. */
+  /* THE VERSION, STRAIGHT FROM THE WORKER THAT IS SERVING THIS PAGE.
+     Not a constant in this file - a second copy would eventually disagree with
+     sw.js, and a stamp that can be wrong is worse than none. */
+  var APP_VERSION = "checking...";
+  function askVersion(){
+    try{
+      if(!navigator.serviceWorker){ setVersion("not installed"); return; }
+      navigator.serviceWorker.addEventListener("message", function(e){
+        if(e.data && e.data.version){
+          /* the cache is named mixed-up-golf-v11; show the tail */
+          var m = String(e.data.version).match(/v[0-9]+$/);
+          setVersion(m ? m[0] : String(e.data.version));
+        }
+      });
+      var ctl = navigator.serviceWorker.controller;
+      if(ctl){ ctl.postMessage("version"); }
+      else {
+        /* first load: the worker has not taken over yet. It will, and
+           controllerchange fires when it does. */
+        setVersion("not installed");
+        navigator.serviceWorker.addEventListener("controllerchange", function(){
+          if(navigator.serviceWorker.controller){
+            navigator.serviceWorker.controller.postMessage("version");
+          }
+        });
+      }
+    }catch(err){ setVersion("not installed"); }
+  }
+  function setVersion(v){
+    APP_VERSION = v;
+    var el = document.getElementById("vstamp");
+    if(el) el.textContent = v;
+  }
+
   function defaultRoster(){
     var r=[];
     for(var i=0;i<8;i++) r.push({name:"", hcp:""});
@@ -2055,6 +2099,11 @@ html,body{
     img.src=ERNIE; img.alt="Ernie";
     crop.appendChild(img); e.appendChild(crop);
     w.appendChild(e);
+
+    var v=document.createElement("div");
+    v.className="vstamp"; v.id="vstamp";
+    v.textContent=APP_VERSION;
+    w.appendChild(v);
   }
 
   /* The whole card at once — holes down, players across, same orientation as
@@ -2958,6 +3007,7 @@ html,body{
   var KNOWN={pars:1,ranks:1,players:1,roster:1,scores:1,holes:1,hole:1,results:1};
   if(!KNOWN[state.step]) state.step="holes";
 
+  askVersion();
   loadPeople();
   wirePick();
   load();
