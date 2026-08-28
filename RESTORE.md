@@ -52,8 +52,8 @@ version forever. Then close the app fully and reopen it twice.
 The round (`mixedUpGolf.v1`) and the roster (`mixedUpGolf.people.v1`) live in
 that phone's browser storage. They are not in this repo, not in any cloud, and
 not recoverable if the phone is wiped or the site data cleared. **The roster is
-retyped by hand after that** — eleven men, and remember `ChrisB` and `Mark` must
-stay distinct. This is deliberate: `index.html` is public, so real names and
+retyped by hand after that** — eleven men, and the two who share a first name
+must be given distinct card names. This is deliberate: `index.html` is public, so real names and
 handicaps must never be committed. See the roster section of `CLAUDE.md`.
 
 ## Backup audit

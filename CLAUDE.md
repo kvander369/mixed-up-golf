@@ -150,10 +150,13 @@ Three rules, all of them load-bearing:
 2. **The people live in their own storage key** (`mixedUpGolf.people.v1`),
    not inside the round. "New round - clear everything" wipes scores and
    never the people.
-3. **Names that reach the card must be distinct.** Kyle has two Marks -
-   Elm is `ChrisB`, Fir is `Mark`. Scoring never cared (it is all
-   by slot index), but the roster keyed on name, so the second Mark could
-   not exist. A duplicate is now refused with a reason.
+3. **Names that reach the card must be distinct.** Two men in the group share
+   a first name, so one of them carries an initial on the card. Scoring never
+   cared (it is all by slot index), but the roster keyed on name, so the second
+   man could not exist. A duplicate is now refused with a reason.
+
+   **Their real names are not written down here.** This file is published with
+   the app. Kyle knows which two; the docs and the tests use invented names.
 
 **The shipped roster is EMPTY, on purpose.** `index.html` is published
 publicly, so seeding it with the real group would put eleven men's names and
@@ -169,7 +172,7 @@ handicaps in a public repo permanently. Kyle builds the list on the phone.
   gone. Bounded — retype eleven names — but a nasty clubhouse surprise. The only
   honest test is time; record the answer in `docs/GOLF_APP_STATE.md`.
 - Kyle still has to add his group on the phone: **Roster → Add someone**,
-  remembering `ChrisB` (Elm) and `Mark` (Fir).
+  giving the two men who share a first name distinct card names.
 
 ## Closed
 

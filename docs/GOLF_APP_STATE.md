@@ -335,10 +335,11 @@ carry weight:
    inside game.
 2. **People live in their own key** (`mixedUpGolf.people.v1`), not inside the
    round. "New round — clear everything" wipes scores and never the people.
-3. **Names on the card must be distinct.** Kyle has two Marks — Elm is
-   `ChrisB`, Fir is `Mark`. Scoring never cared (it is all by slot index)
-   but the roster keyed on name, so the second Mark could not exist. A duplicate
-   is now refused with a reason.
+3. **Names on the card must be distinct.** Two men in the group share a first
+   name, so one carries an initial on the card. Scoring never cared (it is all
+   by slot index) but the roster keyed on name, so the second man could not
+   exist. A duplicate is now refused with a reason. Their real names are
+   deliberately not recorded here — see the note in `CLAUDE.md`.
 
 **The shipped roster is EMPTY, on purpose.** `index.html` is published publicly,
 so seeding it would put eleven men's names and handicaps into a public repo

@@ -1974,7 +1974,7 @@ html,body{
       var dup=findPerson(name);
       if(dup){
         rosterSay("There is already a "+dup.name+" on the list. Two men cannot share "
-                + "a name on the card - try ChrisB, or Sy.");
+                + "a name on the card - add an initial, or use what you actually call him.");
         return;
       }
       addPerson(name, (nCh.value||"").replace(/[^0-9]/g,"").slice(0,2), (nFull.value||"").trim());

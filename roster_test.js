@@ -5,7 +5,8 @@
  *   1. A person's CH is the LAST ONE YOU USED.
  *   2. The people survive "New round - clear everything".
  *   3. Joining the list is always a deliberate tap. Nothing adds itself.
- *   4. Two men called Mark are two men, and the card can tell them apart.
+ *   4. Two men who share a first name are two men, and the card can tell
+ *      them apart.
  *
  * The shipped app has an EMPTY roster - Kyle's group lives only on his phone -
  * so the suite builds its own, which also proves the setup path works.
@@ -202,16 +203,16 @@ T('a guest can be kept afterwards, so "Just today" is never a dead end', () => {
   eq(!!A.find('Vinny'), true, 'and kept afterwards');
 });
 
-/* ---- two men called Mark ---- */
+/* ---- two men who share a first name ---- */
 
-T('both Marks exist, and the card tells them apart', () => {
-  eq(A.find('Chris').full, 'Chris C', 'Mark is Fir');
-  eq(A.find('ChrisB').full, 'Chris B', 'ChrisB is Elm');
+T('both men exist, and the card tells them apart', () => {
+  eq(A.find('Chris').full, 'Chris C', 'the first Chris');
+  eq(A.find('ChrisB').full, 'Chris B', 'and the second, with an initial');
   A.newRound('all');
   A.assign(0, A.find('Chris'));
   A.assign(1, A.find('ChrisB'));
-  eq(A.st().roster[0].hcp, '9', 'Fir plays off 9');
-  eq(A.st().roster[1].hcp, '15', 'Elm off 15');
+  eq(A.st().roster[0].hcp, '9', 'the first Chris plays off 9');
+  eq(A.st().roster[1].hcp, '15', 'the second off 15');
 });
 
 T('a duplicate card name is refused, not silently merged', () => {
