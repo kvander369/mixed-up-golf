@@ -23,6 +23,27 @@ place only — see the push rule in `CLAUDE.md`.
 The app itself needs nothing else. `index.html` is self-contained — no build,
 no dependencies, no server. Opening the file works; so does GitHub Pages.
 
+## Going back to a version that worked
+
+Known-good points are tagged. `v14-known-good` is the app as it came off a real
+round on 2026-08-29 - six suites green, and Kyle played with it.
+
+    git tag -l                      # what known-good points exist
+    git clone --branch v14-known-good https://github.com/kvander369/mixed-up-golf.git
+
+That clone was made and all six suites run against it on 2026-08-29, so this is
+a tested route, not a hopeful one.
+
+To put an old version back on the phone, restoring the files is only half of
+it. **The phone compares the `CACHE` string in `sw.js` and nothing else.** So
+roll the content back, then set `CACHE` to the NEXT UNUSED number - never back
+to the old one - and say in the commit message which version the content came
+from. Going forwards to old content is what the phone can actually follow.
+
+To tag a new known-good point:
+
+    git tag -a v15-known-good -m "why this one is good" && git push origin v15-known-good
+
 ## What a clone does NOT bring back
 
 Four files are gitignored on purpose (machine-specific, or personal). A fresh
