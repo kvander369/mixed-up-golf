@@ -876,6 +876,7 @@ html,body{
     border:1px solid var(--line);border-radius:10px;
     background:var(--row);color:var(--ink);cursor:pointer;
     min-width:0;
+    position:relative;overflow:hidden;
   }
   .hecell em{
     font-style:normal;font-family:var(--f-cond);
@@ -884,7 +885,25 @@ html,body{
     max-width:100%;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   }
-  .hecell em b{color:var(--bar);letter-spacing:-1px;}
+  /* THE POP CHIT. Kyle, 2026-08-29, looking at this screen: "the ONLY thing
+     missing is the chit that shows who is getting a pop". It was not missing -
+     it was an 18px green speck with letter-spacing:-1px, which is the same as
+     missing.
+
+     It is the SAME corner flag the Holes grid uses (see .hxrow .sc.pop above),
+     same shape and the same two colours: --ink-2 for one shot, #FF5CA0 for
+     two. Kyle: "we need to be consistent, we used white corners and pink
+     corners in the other view." A second vocabulary for the same fact is how
+     a card starts needing to be explained. Bigger here than there only
+     because there are four cells on this screen, not seventy-two. */
+  .hecell.pop::after{
+    content:"";
+    position:absolute;top:0;left:0;
+    width:16px;height:16px;
+    background:var(--ink-2);
+    clip-path:polygon(0 0, 100% 0, 0 100%);
+  }
+  .hecell.pop2::after{ background:#FF5CA0; }
   .hecell span{
     font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1;
   }
@@ -2248,7 +2267,8 @@ html,body{
         cellb.className="hecell"+(p<2?" p12":" p34")
                        +(state.holeSel===p?" sel":"")+(v===null?" empty":"")+side;
         var shots = (g.ready && ranks[h]!==null) ? strokesFor(g.pops[p], ranks[h]) : 0;
-        cellb.innerHTML="<em>"+pname(p)+(shots?" <b>"+Array(shots+1).join("•")+"</b>":"")+"</em>"
+        if(shots) cellb.className += " pop"+(shots>1?" pop2":"");
+        cellb.innerHTML="<em>"+pname(p)+"</em>"
                        +"<span>"+(v===null?"·":v)+"</span>";
         cellb.onclick=function(){ state.holeSel=p; render(); };
         sc.appendChild(cellb);
