@@ -105,6 +105,28 @@ T('"we won three ways" on that front', () => {
   eq(r.front.bets.map(b => b.ways), [1,1,1,0]);
 });
 
+/* ---- a press that swings the other way ---- */
+T('Kyle: "2 and 0, then 1 and 1, then 0 and 2 - this starts a new press"', () => {
+  /* we win 1 and 2 (front 2 up, press from 3), they win 3 and 4 */
+  const r = A.nassau(round('UUTT-----', PAR));
+  eq(r.front.bets[0].run.slice(0,4), [1,2,1,0],  'front: 2 and 0 ... 1 and 1 ... 0 and 2');
+  eq(r.front.bets[1].run.slice(0,2), [-1,-2],    'press: the "and 2"');
+  eq(r.front.presses, 2, 'a second press');
+  eq(r.front.bets[2].start, 4, 'from hole 5');
+});
+T('an older bet swinging from 2 up to 2 down is always covered by the newer one first', () => {
+  /* front goes 2 up, then they win six straight. The front passes 2 down at
+     hole 6 - but the press hit 2 down at hole 4 and pressed then, that press
+     hit 2 down at hole 6 and pressed then, and so on. A new press starts at 0
+     when the bet above it is at 2, so the two move in step, two apart: the
+     newer one always reaches 2 down first. The older bet's swing can never
+     be the trigger, so "does a bet press twice?" never needs answering. */
+  const r = A.nassau(round('UUTTTTTT-', PAR));
+  eq(r.front.bets.map(b => b.start), [0,2,4,6,8], 'presses at 3, 5, 7, 9');
+  eq(r.front.bets[0].run, [1,2,1,0,-1,-2,-3,-4,-4], 'the front itself swings 2 up -> 4 down');
+  eq(r.front.presses, 4);
+});
+
 /* ---- the whole simulated round, agreed at "you win 3X" ---- */
 const FULL = round('UU-UU-UU-', 'TT-TT-U--');
 T('back: they win 10,11,13,14 and we win 16 -> 3, 1 and 1', () => {

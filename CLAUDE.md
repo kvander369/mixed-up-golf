@@ -3,7 +3,7 @@
 Read this first, every session. Then `docs/GOLF_APP_STATE.md` for where things
 stand, and `RESTORE.md` if the machine or the folder is new.
 
-**Current as of 2026-08-29: live at v21, seven suites / 99 checks all green,
+**Current as of 2026-08-29: live at v21, seven suites / 101 checks all green,
 nothing blocking.**
 
 ---
@@ -79,7 +79,7 @@ guessed at. Keep doing that — it caught several things reasoning had got wrong
     node roster_test.js              the roster keeps its promises
     node nassau_test.js              the Nassau settles the way the group plays it
 
-Seven suites, 99 checks. All green as of 2026-08-29. Run them all — they are fast,
+Seven suites, 101 checks. All green as of 2026-08-29. Run them all — they are fast,
 and two of them once passed while silently testing nothing (see below).
 
 **A test that passes by testing nothing is worse than one that fails.** Adding a
@@ -179,8 +179,11 @@ It consumes the per-hole result `insideGame()` already produces. **The stroke
 allocation did not move** - rule 4 above still holds and
 `pops_separation_test.js` still guards it.
 
-One thing Kyle has not ruled on, treated as no new press: a press that goes 2
-up for one side and then swings to 2 down for the other. Ask before changing.
+A bet swinging from 2 up to 2 down never needs a ruling: a press starts at 0
+when the bet above it is at 2, the two then move in step, and the newer one
+reaches 2 down first. `nassau_test.js` proves it. Kyle confirmed the related
+case in his own words: "2 and 0, then 1 and 1, then 0 and 2 - this starts a
+new press."
 
 ## Relationship to ScannerBot
 

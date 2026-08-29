@@ -73,7 +73,7 @@ Kyle's head; the app colours holes.
     node roster_test.js              the roster keeps its promises
     node nassau_test.js              the Nassau settles the way the group plays it
 
-Seven suites, 99 checks, no framework and no dependencies — each one drives the
+Seven suites, 101 checks, no framework and no dependencies — each one drives the
 real app against a DOM stub. They catch what a syntax check cannot: a deleted
 function still being called, a handler wired to an element that no longer
 exists.
