@@ -748,10 +748,12 @@ html,body{
     font-size:17px;font-weight:700;letter-spacing:.06em;color:#FFFFFF;
   }
   /* the segment tally is the exception — it wears the winning side's colour */
-  .hxsub .hnum i{font-size:14px;font-weight:700;font-family:var(--f-sans);}
-  .hxsub .hnum.t12 i{color:var(--live);}
-  .hxsub .hnum.t34 i{color:var(--gold);}
-  .hxsub .hnum.tAS i{color:var(--ink-2);}
+  .hxsub .hnum i{font-size:14px;font-weight:700;font-family:var(--f-sans);white-space:nowrap;}
+  .hxsub .hnum i em{font-style:normal;}
+  .hxsub .hnum i u{text-decoration:none;color:var(--ink-3);}
+  .hxsub .hnum i .t12{color:var(--live);}
+  .hxsub .hnum i .t34{color:var(--gold);}
+  .hxsub .hnum i .tAS{color:var(--ink-2);}
 
   .hxtap{cursor:pointer;}
   .hxtap:active .hxc{background:var(--row-2);}
@@ -1094,6 +1096,75 @@ html,body{
   }
 
   /* ---------- results ---------- */
+  /* ---------- the Nassau tab ---------- */
+  .nassau{display:none;padding:4px 0 10px;}
+  .nassau.on{display:block;}
+  .nstakes{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 12px;}
+  .nstake{
+    display:flex;align-items:center;justify-content:space-between;gap:8px;
+    background:var(--row);border:1px solid var(--line-soft);border-radius:9px;padding:8px 8px 8px 12px;
+  }
+  .nstake label{font-size:22px;font-weight:700;color:var(--ink);}
+  .nstake label small{display:block;font-size:13px;font-weight:400;color:var(--ink-2);line-height:1.1;}
+  .nstake input{
+    width:74px;height:44px;border-radius:8px;border:1px solid var(--line);
+    background:var(--row-2);color:var(--ink);font-size:24px;font-weight:700;text-align:center;
+    font-variant-numeric:tabular-nums;
+  }
+  .nopts{display:flex;flex-direction:column;gap:6px;padding:8px 12px 0;}
+  .ntoggle{
+    display:flex;align-items:center;gap:12px;
+    background:var(--row);border:1px solid var(--line-soft);border-radius:9px;padding:11px 12px;
+    color:var(--ink);font-size:17px;text-align:left;cursor:pointer;
+  }
+  .ntoggle span{
+    width:44px;height:26px;border-radius:13px;background:var(--line);position:relative;flex-shrink:0;
+    transition:background .15s;
+  }
+  .ntoggle span::after{
+    content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;
+    background:var(--ink-2);transition:left .15s,background .15s;
+  }
+  .ntoggle.on span{background:var(--bar);}
+  .ntoggle.on span::after{left:21px;background:var(--bar-ink);}
+  .nkey{display:flex;justify-content:space-between;padding:12px 16px 0;font-size:15px;font-weight:600;}
+  .nkey .s12,.nbet .s12,.nline.s12,.nways.s12{color:var(--live);}
+  .nkey .s34,.nbet .s34,.nline.s34,.nways.s34{color:var(--gold);}
+  .nbet{
+    display:grid;grid-template-columns:1fr auto;grid-template-areas:"lbl ways" "run run";
+    align-items:center;gap:6px 10px;
+    padding:11px 16px;background:var(--row);border-top:1px solid var(--line-soft);
+  }
+  .nbet.live{background:var(--row-2);}
+  .nb1{grid-area:lbl;display:flex;flex-direction:column;gap:2px;min-width:0;}
+  .nb1 strong{font-size:18px;font-weight:700;color:var(--ink);white-space:nowrap;}
+  .nb1 small{font-size:13px;color:var(--ink-2);white-space:nowrap;}
+  .nrun{grid-area:run;display:flex;gap:4px;justify-content:flex-start;flex-wrap:nowrap;align-items:center;}
+  .nrun b{
+    flex:1 1 0;max-width:38px;height:30px;line-height:30px;text-align:center;border-radius:5px;
+    font-size:18px;font-weight:700;color:var(--ink);background:var(--ground);
+    font-variant-numeric:tabular-nums;
+  }
+  .nrun b.np{color:var(--ink-3);background:transparent;}
+  .nrun span{font-size:24px;font-weight:700;font-variant-numeric:tabular-nums;}
+  .nrun i{font-style:normal;color:var(--ink-3);margin:0 6px;}
+  .nways{
+    grid-area:ways;
+    font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;
+    color:var(--ink);text-align:right;min-width:64px;
+  }
+  .nways.off{color:var(--ink-3);font-size:14px;font-family:var(--f-cond);letter-spacing:.08em;text-transform:uppercase;}
+  .nline{
+    margin:14px 12px 0;padding:16px;border-radius:10px;
+    background:var(--row);border:1px solid var(--line-soft);
+    display:flex;flex-direction:column;gap:2px;align-items:center;text-align:center;
+  }
+  .nline strong{font-size:22px;font-weight:700;color:var(--ink);}
+  .nline small{font-family:var(--f-cond);font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2);}
+  .nline em{font-style:normal;font-size:40px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:4px;}
+  .nline.s12 em{color:var(--live);}
+  .nline.s34 em{color:var(--gold);}
+
   .results{display:none;padding:4px 0 10px;}
   .results.on{display:block;}
   .rsec{
@@ -1193,7 +1264,7 @@ html,body{
     flex-shrink:0;
     background:var(--bar);
     background-image:linear-gradient(180deg,rgba(255,255,255,.14),rgba(0,0,0,.08));
-    display:grid;grid-template-columns:repeat(3,1fr);
+    display:grid;grid-template-columns:repeat(4,1fr);
     padding: 7px 0 calc(8px + env(safe-area-inset-bottom));
   }
   .tab{
@@ -1342,6 +1413,7 @@ html,body{
 
       <div class="nextwrap" id="nextWrap"></div>
       <div class="results" id="resultsUI"></div>
+      <div class="nassau"  id="nassauUI"></div>
 
       <div class="padwrap" id="padWrap"></div>
       <div class="padnote" id="padNote"></div>
@@ -1361,6 +1433,10 @@ html,body{
     <button class="tab" role="tab" data-tab="results" aria-selected="false">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21V10M16 21V4M3 21h18"/></svg>
       <span>Results</span>
+    </button>
+    <button class="tab" role="tab" data-tab="nassau" aria-selected="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M17 7H9.5a2.5 2.5 0 0 0 0 5h5a2.5 2.5 0 0 1 0 5H7"/></svg>
+      <span>Nassau</span>
     </button>
   </div>
 
@@ -1612,6 +1688,7 @@ html,body{
   /* Junk is entered BY HAND — Kyle: "No formula will work."
      Per hole: who got a birdie / chippie / sandie, and how many greenies each
      side took. Presses are NOT tracked; Kyle keeps those in his head. */
+  function defaultNassau(){ return {x:5, y:2, carry:false, doubleBack:false}; }
   function defaultJunk(){
     var a=[];
     for(var i=0;i<18;i++) a.push({b:[0,0,0,0], c:[0,0,0,0], s:[0,0,0,0], g12:0, g34:0});
@@ -1629,6 +1706,10 @@ html,body{
     roster:defaultRoster(),
     holeIdx:0, holeSel:0, draw:null,
     junk:defaultJunk(),
+    /* the Nassau stakes and options. Kyle: "our default is 5 and 2". X and Y
+       and the carry rule survive a new round; doubling the back is a decision
+       taken at the turn of THIS round, so a new round clears it. */
+    nassau:defaultNassau(),
     pars:ccwPars(),
     ranks:ccwRanks(),
     scores:{}
@@ -1652,6 +1733,7 @@ html,body{
         state.armed = null;
         if(!state.roster || state.roster.length!==8) state.roster = defaultRoster();
         if(!state.junk || state.junk.length!==18) state.junk = defaultJunk();
+        if(!state.nassau) state.nassau = defaultNassau();
         if(typeof state.holeIdx!=="number") state.holeIdx=0;
         state.holeSel=0;
       }
@@ -1681,7 +1763,7 @@ html,body{
   }
 
   /* Bottom tabs = during / after the round. Top buttons = set once, before it. */
-  var TAB_OF   = {scores:"scores", holes:"holes", hole:"holes", results:"results"};
+  var TAB_OF   = {scores:"scores", holes:"holes", hole:"holes", results:"results", nassau:"nassau"};
   var SETUP_OF = {pars:"course", ranks:"course", players:"players", roster:"roster"};
 
   function render(){
@@ -1709,6 +1791,7 @@ html,body{
     document.getElementById("holeUI").classList.toggle("on",    state.step==="hole");
     document.getElementById("holesUI").classList.toggle("on",   state.step==="holes");
     document.getElementById("resultsUI").classList.toggle("on", state.step==="results");
+    document.getElementById("nassauUI").classList.toggle("on", state.step==="nassau");
     [".context",".card",".nextwrap",".padwrap",".padnote"].forEach(function(s){
       document.querySelector(s).style.display = isEntry ? "" : "none";
     });
@@ -1723,6 +1806,7 @@ html,body{
     if(state.step==="hole"){    renderHoleEntry(); return; }
     if(state.step==="holes"){   renderHoles();   return; }
     if(state.step==="results"){ renderResults(); return; }
+    if(state.step==="nassau"){  renderNassau();  return; }
 
     var arr = current();
     document.querySelectorAll(".ninebtn").forEach(function(b){
@@ -2211,6 +2295,110 @@ html,body{
     }
   }
 
+  /* THE NASSAU - the inside game as the group actually plays it.
+     Taught by Kyle, 2026-08-29, one worked example at a time; the numbers he
+     agreed to are the cases in nassau_test.js, so this is the rule book.
+
+     "X and Y, five ways, automatic presses, option to double the back."
+
+       front nine     1X     ("one way")
+       back nine      2X     ("two ways") - 4X if the back is doubled
+       overall        2X     holes won across all 18
+       every press    1X     on either nine, never doubled
+
+     A PRESS is a fresh bet from the next hole, both sides level, on what is
+     left of that nine. It starts automatically the moment a bet reaches 2
+     down. Only the NEWEST bet on the nine can spawn the next press - the
+     front standing 6 up does not keep spawning presses, and a bet drifting
+     back to 2 down does not press again (Kyle narrated exactly that: "after 7
+     we are 0 and 2", two numbers, no third bet). Presses stack until the nine
+     runs out; a press cannot start on a hole that does not exist, so three is
+     the most a nine can hold.
+
+     A tied bet is SAWED OFF - nobody pays. The one exception is the front,
+     which can carry to the back if the group turns that on: the front 1X
+     then goes to whoever wins the back, and is sawed off if that ties too.
+
+     Presses never touch the overall. The overall never presses.
+
+     Input is the per-hole result the inside game already produces, so the
+     stroke allocation (pops off the low man) is untouched - this is a new way
+     of adding those results up, nothing more. Everything is from side 12's
+     point of view: positive means 12 is up.
+
+     One thing Kyle has NOT ruled on: a press that goes 2 up for one side and
+     then swings to 2 down for the other. Treated as no new press, the same
+     as drifting back. Ask before changing. */
+  function nassau(pts, opts){
+    opts = opts || {};
+    var front = nassauNine(pts, 0, 1, "Front");
+    var back  = nassauNine(pts, 9, opts.doubleBack ? 4 : 2, "Back");
+
+    /* the overall: holes won across 18, 2X, no presses */
+    var won12=0, won34=0, played=0;
+    for(var h=0;h<18;h++){
+      if(pts[h]===null) continue;
+      played++;
+      if(pts[h]==="12") won12++; else if(pts[h]==="34") won34++;
+    }
+    var overall={label:"Overall", stake:2, diff:won12-won34, done:played===18,
+                 start:0, run:[], carried:false};
+
+    /* the front tie carrying to the back: the front's 1X rides on the back
+       nine's own result. Only once the back is decided. */
+    var f=front.bets[0], b=back.bets[0];
+    if(opts.carryFront && f.done && f.diff===0 && b.done){
+      f.carried=true; f.diff=b.diff;
+    }
+
+    var bets=front.bets.concat(back.bets, [overall]);
+    var ways=0;
+    bets.forEach(function(bt){
+      bt.winner = !bt.done ? null : bt.diff>0 ? "12" : bt.diff<0 ? "34" : null;
+      bt.ways   = bt.winner ? (bt.diff>0 ? bt.stake : -bt.stake) : 0;
+      ways += bt.ways;
+    });
+    return {front:front, back:back, overall:overall, bets:bets, ways:ways,
+            won12:won12, won34:won34, doubleBack:!!opts.doubleBack};
+  }
+  /* one nine: the nine's own bet, then every press it spawned */
+  function nassauNine(pts, start, stake, label){
+    var bets=[{label:label, stake:stake, start:start, diff:0, run:[], pressed:false, carried:false}];
+    var newest=bets[0], pending=null, n=0;
+    for(var h=start; h<start+9; h++){
+      if(pending){ bets.push(pending); newest=pending; pending=null; }
+      var r=pts[h];
+      bets.forEach(function(bt){
+        if(r==="12") bt.diff++; else if(r==="34") bt.diff--;
+        bt.run.push(r===null ? null : bt.diff);
+      });
+      /* 2 down on the newest bet, and a hole left to play it on */
+      if(!newest.pressed && Math.abs(newest.diff)===2 && h<start+8){
+        newest.pressed=true; n++;
+        pending={label:"Press "+n, stake:1, start:h+1, diff:0, run:[], pressed:false, carried:false};
+      }
+    }
+    bets.forEach(function(bt){
+      bt.done = pts.slice(bt.start, start+9).every(function(v){ return v!==null; });
+    });
+    return {label:label, bets:bets, presses:n};
+  }
+  /* junk is per man on the card, pooled by side for the money: the
+     difference in team totals, times Y. Greenies are already booked by pair. */
+  function junkPool(){
+    var t={p12:0,p34:0};
+    for(var h=0;h<18;h++){
+      var J=state.junk[h];
+      ["b","c","s"].forEach(function(k){
+        t.p12 += J[k][0]+J[k][1];
+        t.p34 += J[k][2]+J[k][3];
+      });
+      t.p12 += J.g12; t.p34 += J.g34;
+    }
+    t.diff = t.p12 - t.p34;
+    return t;
+  }
+
   function initials(a,b){
     return (pname(a).trim()[0]||"?").toUpperCase()
          + (pname(b).trim()[0]||"?").toUpperCase();
@@ -2472,15 +2660,28 @@ html,body{
 
     function subtotal(label, from, to){
       var r=row("hxsub");
-      var tally="", side="";
+      var tally="";
       if(g.ready){
-        var a=0,b=0;
-        for(var k=from;k<to;k++){ if(g.pts[k]==="12")a++; if(g.pts[k]==="34")b++; }
-        tally=a+"–"+b;
-        /* the segment tally wears the colour of whoever took it */
-        side = a>b ? " t12" : b>a ? " t34" : " tAS";
+        /* Kyle, 2026-08-29: "the results you have showing under In / Tot will
+           not be right - ex 4-2-0". Out and In show the Nassau bets on that
+           nine - the nine itself, then each press - each figure in the colour
+           of whoever is up on it. Tot stays holes won, because that IS the
+           overall bet. */
+        if(to-from===9){
+          var NB=nassau(g.pts, {doubleBack:state.nassau.doubleBack, carryFront:state.nassau.carry});
+          var bets=(from===0 ? NB.front : NB.back).bets;
+          tally=bets.map(function(bt){
+            var c = bt.diff>0 ? "t12" : bt.diff<0 ? "t34" : "tAS";
+            return "<em class='"+c+"'>"+Math.abs(bt.diff)+"</em>";
+          }).join("<u>-</u>");
+        } else {
+          var a=0,b=0;
+          for(var k=from;k<to;k++){ if(g.pts[k]==="12")a++; if(g.pts[k]==="34")b++; }
+          var sc2 = a>b ? "t12" : b>a ? "t34" : "tAS";
+          tally="<em class='"+sc2+"'>"+a+"–"+b+"</em>";
+        }
       }
-      var lc=cell("","hnum"+side);
+      var lc=cell("","hnum");
       lc.innerHTML="<b>"+label+"</b>"+(tally?"<i>"+tally+"</i>":"");
       r.appendChild(lc);
       for(var i=0;i<4;i++){
@@ -2547,30 +2748,14 @@ html,body{
     /* everything is in — run the real engine */
     var ranks=full(state.ranks), pars=full(state.pars);
 
-    /* four-player round: there is no team 2 to play, so the inside game
-       IS the result. */
+    /* four-player round: there is no team 2 to play. Results is the two-team
+       screen; the inside game lives on its own tab now. Kyle, 2026-08-29:
+       "your current display of who takes it 5-4 is all not needed now. The
+       new game trumps all that." */
     if(!teamTwoActive()){
-      var ig=insideGame();
-      var h4=document.createElement("div"); h4.className="rsec";
-      h4.textContent="Inside game";
-      w.appendChild(h4);
-      if(ig.ready){
-        var st=document.createElement("div"); st.className="standing";
-        st.appendChild(sideBox(pname(0)+" & "+pname(1), ig.tally.p12, "s12"));
-        var md=document.createElement("div"); md.className="halved";
-        md.innerHTML="<span>"+ig.tally.halved+"</span>halved";
-        st.appendChild(md);
-        st.appendChild(sideBox(pname(2)+" & "+pname(3), ig.tally.p34, "s34"));
-        w.appendChild(st);
-        var verdict=document.createElement("div"); verdict.className="rnote";
-        verdict.innerHTML = ig.tally.p12===ig.tally.p34
-          ? "All square after 18."
-          : "<b>"+(ig.tally.p12>ig.tally.p34
-              ? pname(0)+" & "+pname(1) : pname(2)+" & "+pname(3))
-            +"</b> take it, "+Math.max(ig.tally.p12,ig.tally.p34)
-            +"–"+Math.min(ig.tally.p12,ig.tally.p34)+".";
-        w.appendChild(verdict);
-      }
+      var nn=document.createElement("div"); nn.className="rnote";
+      nn.innerHTML="Four-player round. The inside game is on the <b>Nassau</b> tab.";
+      w.appendChild(nn);
       renderSkins(pars, w);
       return;
     }
@@ -2615,6 +2800,121 @@ html,body{
 
     renderDraw(w, ranks);
     renderSkins(pars, w);
+  }
+
+  /* THE NASSAU TAB. Settings on top, then every bet as a row with its
+     hole-by-hole run - the way Kyle narrates it, "6, 4, 2 and 0" - then junk
+     by side, then the one line the clubhouse needs: who owes whom, how much. */
+  function renderNassau(){
+    var w=document.getElementById("nassauUI");
+    w.innerHTML="";
+    var N=state.nassau, ig=insideGame();
+    var s12=pname(0)+" & "+pname(1), s34=pname(2)+" & "+pname(3);
+
+    /* stakes and options */
+    var sh=document.createElement("div"); sh.className="rsec"; sh.textContent="Stakes";
+    w.appendChild(sh);
+    var st=document.createElement("div"); st.className="nstakes";
+    st.appendChild(stake("X", "per way", "x"));
+    st.appendChild(stake("Y", "per junk", "y"));
+    w.appendChild(st);
+    var op=document.createElement("div"); op.className="nopts";
+    op.appendChild(toggle("Double the back", N.doubleBack, function(){ N.doubleBack=!N.doubleBack; }));
+    op.appendChild(toggle("Tied front carries to the back", N.carry, function(){ N.carry=!N.carry; }));
+    w.appendChild(op);
+
+    if(!ig.ready){
+      var need=document.createElement("div"); need.className="rnote";
+      need.textContent="Course and handicaps needed before the bets can run.";
+      w.appendChild(need);
+      return;
+    }
+
+    var R=nassau(ig.pts, {doubleBack:N.doubleBack, carryFront:N.carry});
+    var jp=junkPool();
+
+    /* the sides, so the colours mean something */
+    var key=document.createElement("div"); key.className="nkey";
+    key.innerHTML="<span class='s12'>"+s12+"</span><span class='s34'>"+s34+"</span>";
+    w.appendChild(key);
+
+    section("Front", R.front.bets, 0);
+    section("Back"+(N.doubleBack?" · doubled":""), R.back.bets, 9);
+    section("Overall", [R.overall], null);
+
+    /* junk */
+    var jh=document.createElement("div"); jh.className="rsec"; jh.textContent="Junk";
+    w.appendChild(jh);
+    var jr=document.createElement("div"); jr.className="nbet";
+    jr.innerHTML="<div class='nb1'><strong>Birdies, chippies, sandies, greenies</strong>"
+      +"<small>"+N.y+" each, pooled by side</small></div>"
+      +"<div class='nrun'><span class='s12'>"+jp.p12+"</span><i>–</i><span class='s34'>"+jp.p34+"</span></div>"
+      +"<div class='nways "+(jp.diff>0?"s12":jp.diff<0?"s34":"")+"'>"+(jp.diff?fmt(jp.diff*N.y):"—")+"</div>";
+    w.appendChild(jr);
+
+    /* the bottom line */
+    var total = R.ways*N.x + jp.diff*N.y;
+    var done = R.bets.every(function(b){ return b.done; });
+    var bl=document.createElement("div"); bl.className="nline"+(total>0?" s12":total<0?" s34":"");
+    if(!done){
+      bl.innerHTML="<small>So far</small>"+(total===0
+        ? "<strong>All square</strong>"
+        : "<strong>"+(total>0?s12:s34)+" up "+money(Math.abs(total))+"</strong>");
+    } else if(total===0){
+      bl.innerHTML="<strong>All square. Nobody owes anybody.</strong>";
+    } else {
+      bl.innerHTML="<strong>"+(total>0?s34:s12)+"</strong><small>owe</small>"
+        +"<strong>"+(total>0?s12:s34)+"</strong><em>"+money(Math.abs(total))+"</em>";
+    }
+    w.appendChild(bl);
+
+    function section(title, bets, start){
+      var h=document.createElement("div"); h.className="rsec"; h.textContent=title;
+      w.appendChild(h);
+      bets.forEach(function(b){
+        var r=document.createElement("div"); r.className="nbet"+(b.done?"":" live");
+        var left="<div class='nb1'><strong>"+b.label+"</strong><small>"
+          +(b.stake+"X")
+          +(b.label.indexOf("Press")===0 ? " · from hole "+(b.start+1) : "")
+          +(b.carried ? " · carried to the back" : "")
+          +"</small></div>";
+        /* the run: one figure per hole, from side 12's view. Blank = not played. */
+        var run="<div class='nrun'>";
+        if(start!==null){
+          b.run.forEach(function(v){
+            run += v===null ? "<b class='np'>·</b>"
+                 : "<b class='"+(v>0?"s12":v<0?"s34":"")+"'>"+Math.abs(v)+"</b>";
+          });
+        } else {
+          run += "<span class='s12'>"+R.won12+"</span><i>–</i><span class='s34'>"+R.won34+"</span>";
+        }
+        run += "</div>";
+        var res = !b.done ? (b.diff===0 ? "AS" : Math.abs(b.diff)+(b.diff>0?" up":" dn"))
+                : b.ways===0 ? "sawed off"
+                : fmt(b.ways*N.x);
+        var right="<div class='nways "+(b.done ? (b.ways>0?"s12":b.ways<0?"s34":"off") : (b.diff>0?"s12":b.diff<0?"s34":""))+"'>"+res+"</div>";
+        r.innerHTML=left+run+right;
+        w.appendChild(r);
+      });
+    }
+    function stake(lbl, sub, key){
+      var d=document.createElement("div"); d.className="nstake";
+      d.innerHTML="<label>"+lbl+" <small>"+sub+"</small></label>";
+      var inp=document.createElement("input");
+      inp.type="number"; inp.inputMode="decimal"; inp.min="0"; inp.step="1"; inp.value=N[key];
+      inp.onchange=function(){ var v=parseFloat(inp.value); N[key]=isNaN(v)||v<0?0:v; save(); render(); };
+      d.appendChild(inp);
+      return d;
+    }
+    function toggle(lbl, on, flip){
+      var b=document.createElement("button"); b.className="ntoggle"+(on?" on":"");
+      b.innerHTML="<span></span>"+lbl;
+      b.onclick=function(){ flip(); save(); render(); };
+      return b;
+    }
+    /* money from side 12's view: + means 12 collects */
+    function fmt(v){ return (v>0?"+":"−")+money(Math.abs(v)); }
+    function money(v){ return "$"+(Math.round(v*100)/100); }
   }
 
   function renderSkins(pars, w){
@@ -2840,6 +3140,7 @@ html,body{
       state.junk  =demoJunk();
     }
     state.holeIdx=0; state.holeSel=0; state.armed=null; state.draw=null;
+    state.nassau.doubleBack=false;
     state.nine="front"; wasComplete=false;
     /* Every new round lands on Players. The roster sets the low man, the low
        man sets everyone's pops, and pops decide every hole result — so a wrong
