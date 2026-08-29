@@ -1131,27 +1131,31 @@ html,body{
   .nkey .s12,.nbet .s12,.nline.s12,.nways.s12{color:var(--live);}
   .nkey .s34,.nbet .s34,.nline.s34,.nways.s34{color:var(--gold);}
   .nbet{
-    display:grid;grid-template-columns:1fr auto;grid-template-areas:"lbl ways" "run run";
+    display:grid;grid-template-columns:1fr 64px;grid-template-areas:"lbl lbl" "run ways";
     align-items:center;gap:6px 10px;
     padding:11px 16px;background:var(--row);border-top:1px solid var(--line-soft);
   }
   .nbet.live{background:var(--row-2);}
+  /* a press row: no label, so the run and the money share one line and the
+     row sits tight under the bet it presses */
+  .nbet.press{grid-template-areas:"run ways";padding-top:0;padding-bottom:8px;border-top:0;}
   .nb1{grid-area:lbl;display:flex;flex-direction:column;gap:2px;min-width:0;}
   .nb1 strong{font-size:18px;font-weight:700;color:var(--ink);white-space:nowrap;}
   .nb1 small{font-size:13px;color:var(--ink-2);white-space:nowrap;}
   .nrun{grid-area:run;display:flex;gap:4px;justify-content:flex-start;flex-wrap:nowrap;align-items:center;}
   .nrun b{
-    flex:1 1 0;max-width:38px;height:30px;line-height:30px;text-align:center;border-radius:5px;
+    flex:1 1 0;height:30px;line-height:30px;text-align:center;border-radius:5px;
     font-size:18px;font-weight:700;color:var(--ink);background:var(--ground);
     font-variant-numeric:tabular-nums;
   }
   .nrun b.np{color:var(--ink-3);background:transparent;}
+  .nrun b.nx{background:transparent;}
   .nrun span{font-size:24px;font-weight:700;font-variant-numeric:tabular-nums;}
   .nrun i{font-style:normal;color:var(--ink-3);margin:0 6px;}
   .nways{
     grid-area:ways;
     font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;
-    color:var(--ink);text-align:right;min-width:64px;
+    color:var(--ink);text-align:right;
   }
   .nways.off{color:var(--ink-3);font-size:14px;font-family:var(--f-cond);letter-spacing:.08em;text-transform:uppercase;}
   .nline{
@@ -2872,15 +2876,22 @@ html,body{
       var h=document.createElement("div"); h.className="rsec"; h.textContent=title;
       w.appendChild(h);
       bets.forEach(function(b){
-        var r=document.createElement("div"); r.className="nbet"+(b.done?"":" live");
-        var left="<div class='nb1'><strong>"+b.label+"</strong><small>"
+        var isPress = b.label.indexOf("Press")===0;
+        var r=document.createElement("div"); r.className="nbet"+(b.done?"":" live")+(isPress?" press":"");
+        /* a press carries no label: its run starts under the hole it launched
+           from, and that says everything the label did. Kyle: "you don't even
+           need headers for those, we understand what it means". */
+        var left= isPress ? "" : "<div class='nb1'><strong>"+b.label+"</strong><small>"
           +(b.stake+"X")
-          +(b.label.indexOf("Press")===0 ? " · from hole "+(b.start+1) : "")
           +(b.carried ? " · carried to the back" : "")
           +"</small></div>";
         /* the run: one figure per hole, from side 12's view. Blank = not played. */
         var run="<div class='nrun'>";
         if(start!==null){
+          /* nine slots, one per hole, so a press sits UNDER the hole it
+             launched from - blank before it exists. Kyle: "putting the press
+             rows starting under the holes where they launch". */
+          for(var e=start; e<b.start; e++) run += "<b class='nx'></b>";
           b.run.forEach(function(v){
             run += v===null ? "<b class='np'>·</b>"
                  : "<b class='"+(v>0?"s12":v<0?"s34":"")+"'>"+Math.abs(v)+"</b>";
