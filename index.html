@@ -1106,11 +1106,17 @@ html,body{
   }
   .nstake label{font-size:22px;font-weight:700;color:var(--ink);}
   .nstake label small{display:block;font-size:13px;font-weight:400;color:var(--ink-2);line-height:1.1;}
+  .nmoney{
+    display:flex;align-items:center;height:44px;border-radius:8px;border:1px solid var(--line);
+    background:var(--row-2);padding-left:10px;
+  }
+  .nmoney b{font-size:22px;font-weight:700;color:var(--ink-2);}
   .nstake input{
-    width:74px;height:44px;border-radius:8px;border:1px solid var(--line);
-    background:var(--row-2);color:var(--ink);font-size:24px;font-weight:700;text-align:center;
+    width:58px;height:42px;border:0;background:transparent;
+    color:var(--ink);font-size:24px;font-weight:700;text-align:left;padding-left:2px;
     font-variant-numeric:tabular-nums;
   }
+  .nstake input:focus{outline:none;}
   .nopts{display:flex;flex-direction:column;gap:6px;padding:8px 12px 0;}
   .ntoggle{
     display:flex;align-items:center;gap:12px;
@@ -1127,7 +1133,7 @@ html,body{
   }
   .ntoggle.on span{background:var(--bar);}
   .ntoggle.on span::after{left:21px;background:var(--bar-ink);}
-  .nkey{display:flex;justify-content:space-between;padding:12px 16px 0;font-size:15px;font-weight:600;}
+  .nkey{display:flex;justify-content:space-between;padding:14px 16px 8px;font-size:15px;font-weight:600;}
   .nkey .s12,.nbet .s12,.nline.s12,.nways.s12{color:var(--live);}
   .nkey .s34,.nbet .s34,.nline.s34,.nways.s34{color:var(--gold);}
   .nbet{
@@ -2816,8 +2822,9 @@ html,body{
     var s12=pname(0)+" & "+pname(1), s34=pname(2)+" & "+pname(3);
 
     /* stakes and options */
-    var sh=document.createElement("div"); sh.className="rsec"; sh.textContent="Stakes";
-    w.appendChild(sh);
+    /* no section headers on this screen. Kyle: "you have small grey headers
+       and then big white headers - small grey ones can go". The rows name
+       themselves. */
     var st=document.createElement("div"); st.className="nstakes";
     st.appendChild(stake("X", "per way", "x"));
     st.appendChild(stake("Y", "per junk", "y"));
@@ -2850,12 +2857,10 @@ html,body{
     w.appendChild(key);
 
     section("Front", R.front.bets, 0);
-    section("Back"+(N.doubleBack?" · doubled":""), R.back.bets, 9);
+    section("Back", R.back.bets, 9);
     section("Overall", [R.overall], null);
 
     /* junk */
-    var jh=document.createElement("div"); jh.className="rsec"; jh.textContent="Junk";
-    w.appendChild(jh);
     var jr=document.createElement("div"); jr.className="nbet";
     jr.innerHTML="<div class='nb1'><strong>Birdies, chippies, sandies, greenies</strong>"
       +"<small>"+N.y+" each, pooled by side</small></div>"
@@ -2880,8 +2885,6 @@ html,body{
     w.appendChild(bl);
 
     function section(title, bets, start){
-      var h=document.createElement("div"); h.className="rsec"; h.textContent=title;
-      w.appendChild(h);
       bets.forEach(function(b){
         var isPress = b.label.indexOf("Press")===0;
         var r=document.createElement("div"); r.className="nbet"+(b.done?"":" live")+(isPress?" press":"");
@@ -2890,6 +2893,7 @@ html,body{
            need headers for those, we understand what it means". */
         var left= isPress ? "" : "<div class='nb1'><strong>"+b.label+"</strong><small>"
           +(b.stake+"X")
+          +(title==="Back" && N.doubleBack ? " · doubled" : "")
           +(b.carried ? " · carried to the back" : "")
           +"</small></div>";
         /* the run: one figure per hole, from side 12's view. Blank = not played. */
@@ -2930,10 +2934,13 @@ html,body{
     function stake(lbl, sub, key){
       var d=document.createElement("div"); d.className="nstake";
       d.innerHTML="<label>"+lbl+" <small>"+sub+"</small></label>";
+      var box=document.createElement("div"); box.className="nmoney";
+      box.innerHTML="<b>$</b>";
       var inp=document.createElement("input");
       inp.type="number"; inp.inputMode="decimal"; inp.min="0"; inp.step="1"; inp.value=N[key];
       inp.onchange=function(){ var v=parseFloat(inp.value); N[key]=isNaN(v)||v<0?0:v; save(); render(); };
-      d.appendChild(inp);
+      box.appendChild(inp);
+      d.appendChild(box);
       return d;
     }
     function toggle(lbl, on, flip){
