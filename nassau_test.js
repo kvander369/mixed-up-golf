@@ -147,6 +147,14 @@ T('with carry on, a tied front goes to whoever wins the back', () => {
   eq(r.front.bets[0].carried, true);
   eq(r.front.bets[0].ways, 1);
 });
+T('a carried front is still worth 1X even when the back is doubled', () => {
+  /* Kyle, 2026-08-29: "if the tied front does carry to the back it is still
+     worth one way even if the back is doubled - agree?" Agreed. The front
+     borrows the back's RESULT, never its stake. */
+  const r = A.nassau(round('UT-------', 'U--------'), {carryFront:true, doubleBack:true});
+  eq(r.front.bets[0].ways, 1, 'front');
+  eq(r.back.bets[0].ways, 4, 'back');
+});
 T('with carry on and both nines tied, the front is still sawed off', () => {
   const r = A.nassau(round('UT-------', 'UT-------'), {carryFront:true});
   eq(r.front.bets[0].ways, 0);

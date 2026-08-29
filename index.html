@@ -1131,14 +1131,14 @@ html,body{
   .nkey .s12,.nbet .s12,.nline.s12,.nways.s12{color:var(--live);}
   .nkey .s34,.nbet .s34,.nline.s34,.nways.s34{color:var(--gold);}
   .nbet{
-    display:grid;grid-template-columns:1fr 64px;grid-template-areas:"lbl lbl" "run ways";
+    display:grid;grid-template-columns:1fr auto;grid-template-areas:"lbl ways" "run run";
     align-items:center;gap:6px 10px;
     padding:11px 16px;background:var(--row);border-top:1px solid var(--line-soft);
   }
   .nbet.live{background:var(--row-2);}
   /* a press row: no label, so the run and the money share one line and the
      row sits tight under the bet it presses */
-  .nbet.press{grid-template-areas:"run ways";padding-top:0;padding-bottom:8px;border-top:0;}
+  .nbet.press{grid-template-areas:"run run";padding-top:0;padding-bottom:8px;border-top:0;}
   .nb1{grid-area:lbl;display:flex;flex-direction:column;gap:2px;min-width:0;}
   .nb1 strong{font-size:18px;font-weight:700;color:var(--ink);white-space:nowrap;}
   .nb1 small{font-size:13px;color:var(--ink-2);white-space:nowrap;}
@@ -1157,7 +1157,7 @@ html,body{
     font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;
     color:var(--ink);text-align:right;
   }
-  .nways.off{color:var(--ink-3);font-size:14px;font-family:var(--f-cond);letter-spacing:.08em;text-transform:uppercase;}
+  .nways.off{color:var(--ink-3);}
   .nline{
     margin:14px 12px 0;padding:16px;border-radius:10px;
     background:var(--row);border:1px solid var(--line-soft);
@@ -2824,7 +2824,14 @@ html,body{
     w.appendChild(st);
     var op=document.createElement("div"); op.className="nopts";
     op.appendChild(toggle("Double the back", N.doubleBack, function(){ N.doubleBack=!N.doubleBack; }));
-    op.appendChild(toggle("Tied front carries to the back", N.carry, function(){ N.carry=!N.carry; }));
+    /* Kyle: "can the tied front toggle come up if and only if the front is
+       tied?" Yes - it is a question with no answer until the front has
+       finished level, so it only appears then. The setting itself persists. */
+    var frontTied = ig.ready && (function(){
+      var f = nassauNine(ig.pts, 0, 1, "Front").bets[0];
+      return f.done && f.diff===0;
+    })();
+    if(frontTied) op.appendChild(toggle("Tied front carries to the back", N.carry, function(){ N.carry=!N.carry; }));
     w.appendChild(op);
 
     if(!ig.ready){
@@ -2900,10 +2907,22 @@ html,body{
           run += "<span class='s12'>"+R.won12+"</span><i>–</i><span class='s34'>"+R.won34+"</span>";
         }
         run += "</div>";
-        var res = !b.done ? (b.diff===0 ? "AS" : Math.abs(b.diff)+(b.diff>0?" up":" dn"))
-                : b.ways===0 ? "sawed off"
-                : fmt(b.ways*N.x);
-        var right="<div class='nways "+(b.done ? (b.ways>0?"s12":b.ways<0?"s34":"off") : (b.diff>0?"s12":b.diff<0?"s34":""))+"'>"+res+"</div>";
+        /* money sits beside the nine's name, and it is the TOTAL for that
+           nine - the bet plus its presses - which is what "we won three ways
+           on the front" means. Press rows carry no money: Kyle, "putting the
+           money in the press rows misaligns the columns and doesn't leave
+           room to go the whole 9". A sawed-off nine just reads "—". */
+        var right="";
+        if(!isPress){
+          var nineDone = bets.every(function(x){ return x.done; });
+          var nineWays = bets.reduce(function(t,x){ return t+x.ways; }, 0);
+          var res = !nineDone ? (b.diff===0 ? "AS" : Math.abs(b.diff)+(b.diff>0?" up":" dn"))
+                  : nineWays===0 ? "—"
+                  : fmt(nineWays*N.x);
+          var cls = nineDone ? (nineWays>0?"s12":nineWays<0?"s34":"off")
+                             : (b.diff>0?"s12":b.diff<0?"s34":"");
+          right="<div class='nways "+cls+"'>"+res+"</div>";
+        }
         r.innerHTML=left+run+right;
         w.appendChild(r);
       });
@@ -3366,7 +3385,7 @@ html,body{
 
   /* A saved round from an older build may name a screen that no longer
      exists (the Pops tab, for one). Fall back rather than render nothing. */
-  var KNOWN={pars:1,ranks:1,players:1,roster:1,scores:1,holes:1,hole:1,results:1};
+  var KNOWN={pars:1,ranks:1,players:1,roster:1,scores:1,holes:1,hole:1,results:1,nassau:1};
   if(!KNOWN[state.step]) state.step="holes";
 
   askVersion();
