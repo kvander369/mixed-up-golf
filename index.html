@@ -920,31 +920,38 @@ html,body{
   .hetyping strong.t34{color:var(--gold);}
 
   .hepadwrap{padding:5px 12px 0;}
-  .pad.hepad .key{height:41px;font-size:21px;}
+  /* this used to be 41px/21px - squeezed so the whole screen fit without
+     scrolling. Kyle would rather scroll than squint, so it is close to the
+     full-size key now. */
+  .pad.hepad .key{height:58px;font-size:26px;}
   .pad.hepad{gap:5px;}
 
   .junkgrid{padding:6px 12px 0;display:flex;flex-direction:column;gap:3px;}
-  .junkrow{display:grid;grid-template-columns:70px repeat(4,1fr);gap:4px;align-items:center;}
+  .junkrow{display:grid;grid-template-columns:92px repeat(4,1fr);gap:5px;align-items:center;}
+  /* Kyle, 2026-08-29, after a real round: "its hard for me to see the
+     ancillary part both in terms of font color and size... I dont want to
+     have to put in my readers to enter in the scores." Grey on near-black at
+     14px is a young pair of eyes indoors. White, and bigger. */
   .junklbl{
     font-family:var(--f-cond);
-    font-size:14px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
-    color:var(--ink-3);
+    font-size:18px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;
+    color:var(--ink);
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   }
-  .junkhdr .junklbl{font-size:13px;text-align:center;color:var(--ink-2);}
+  .junkhdr .junklbl{font-size:17px;text-align:center;color:var(--ink);}
   .junkhdr .junklbl:first-child{text-align:left;}
   .junkbtn{
     position:relative;
-    height: 30px;border-radius:7px;
-    border:1px solid var(--line);background:var(--row);color:#5A5A5A;
-    font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;cursor:pointer;
+    height: 46px;border-radius:8px;
+    border:1px solid var(--line);background:var(--row);color:var(--ink);
+    font-size:24px;font-weight:700;font-variant-numeric:tabular-nums;cursor:pointer;
     padding:0;
   }
-  .junkbtn span{display:block;line-height:28px;}
+  .junkbtn span{display:block;line-height:44px;}
   .junkbtn em{
     position:absolute;top:1px;right:3px;
-    font-style:normal;font-size:10px;font-weight:700;
-    color:var(--bar-ink);opacity:.7;
+    font-style:normal;font-size:13px;font-weight:700;
+    color:var(--bar-ink);opacity:.75;
   }
   .junkbtn.on{background:var(--bar);border-color:var(--bar);color:var(--bar-ink);font-weight:700;}
   .junkbtn.on em{color:var(--bar-ink);opacity:.6;}
@@ -956,23 +963,23 @@ html,body{
   }
   .gtitle{display:flex;flex-direction:column;gap:0;min-width:0;}
   .gtitle strong{
-    font-family:var(--f-cond);font-size:14px;font-weight:700;letter-spacing:.1em;
+    font-family:var(--f-cond);font-size:17px;font-weight:700;letter-spacing:.09em;
   }
   .gtitle strong i{font-style:normal;font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--bar);}
   .gstep.s12 .gtitle strong{color:var(--live);}
   .gstep.s34 .gtitle strong{color:var(--gold);}
   .gtitle span{
-    font-size:12px;color:var(--ink-3);
+    font-size:15px;color:var(--ink-2);
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   }
-  .gctl{display:grid;grid-template-columns:36px 1fr 36px;align-items:center;gap:4px;}
+  .gctl{display:grid;grid-template-columns:44px 1fr 44px;align-items:center;gap:6px;}
   .gbtn{
-    height: 30px;border-radius:7px;border:1px solid var(--line);
-    background:var(--row-2);color:var(--ink);font-size:19px;line-height:1;cursor:pointer;
+    height: 44px;border-radius:8px;border:1px solid var(--line);
+    background:var(--row-2);color:var(--ink);font-size:24px;line-height:1;cursor:pointer;
   }
   .gval.here{color:var(--bar);}
   .gval{
-    text-align:center;font-size:21px;font-weight:700;font-variant-numeric:tabular-nums;
+    text-align:center;font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;
   }
 
   /* ---------- random draw ---------- */
