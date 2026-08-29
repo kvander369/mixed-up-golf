@@ -972,8 +972,21 @@ html,body{
     font-style:normal;font-size:13px;font-weight:700;
     color:var(--bar-ink);opacity:.75;
   }
-  .junkbtn.on{background:var(--bar);border-color:var(--bar);color:var(--bar-ink);font-weight:700;}
-  .junkbtn.on em{color:var(--bar-ink);opacity:.6;}
+  /* Kyle, 2026-08-29: "when someone has junk more than 0 lets make the colour
+     consistent with green or yellow team". Same green and gold the score cells
+     and the Holes grid use, so a colour means a SIDE everywhere on the card.
+
+     Two different facts are being shown here and they must stay apart:
+       .has  the round total is above zero  -> the NUMBER wears the side colour
+       .on   something was booked THIS HOLE -> the whole cell fills with it
+     Colouring only the total would have thrown away the this-hole signal,
+     which is the one that lets a mis-tap be walked back. */
+  .junkbtn.has.j12{color:var(--live);border-color:rgba(76,209,55,.40);}
+  .junkbtn.has.j34{color:var(--gold);border-color:rgba(245,213,71,.40);}
+  .junkbtn.on{font-weight:700;}
+  .junkbtn.on.j12{background:var(--live);border-color:var(--live);color:#0B0B0B;}
+  .junkbtn.on.j34{background:var(--gold);border-color:var(--gold);color:#0B0B0B;}
+  .junkbtn.on em{color:#0B0B0B;opacity:.65;}
 
   .greenies{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:5px 12px calc(8px + env(safe-area-inset-bottom));}
   .gstep{
@@ -984,7 +997,9 @@ html,body{
   .gtitle strong{
     font-family:var(--f-cond);font-size:17px;font-weight:700;letter-spacing:.09em;
   }
-  .gtitle strong i{font-style:normal;font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--bar);}
+  /* no colour of its own: it inherits the side colour from the strong it sits
+     in. It used to be --bar, so a GOLD pair wore a green tag. */
+  .gtitle strong i{font-style:normal;font-size:13px;font-weight:700;letter-spacing:.04em;}
   .gstep.s12 .gtitle strong{color:var(--live);}
   .gstep.s34 .gtitle strong{color:var(--gold);}
   .gtitle span{
@@ -996,7 +1011,9 @@ html,body{
     height: 44px;border-radius:8px;border:1px solid var(--line);
     background:var(--row-2);color:var(--ink);font-size:24px;line-height:1;cursor:pointer;
   }
-  .gval.here{color:var(--bar);}
+  /* same rule as the junk cells: a total above zero wears the side colour. */
+  .gstep.s12 .gval.has,.gstep.s12 .gval.here{color:var(--live);}
+  .gstep.s34 .gval.has,.gstep.s34 .gval.here{color:var(--gold);}
   .gval{
     text-align:center;font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;
   }
@@ -2326,7 +2343,7 @@ html,body{
              mistake can be walked back: tapping past 3 clears this hole. */
           var here=J[kind][pi], run=junkTotal(kind,pi);
           var b=document.createElement("button");
-          b.className="junkbtn"+(here?" on":"");
+          b.className="junkbtn j"+(pi<2?"12":"34")+(run?" has":"")+(here?" on":"");
           b.innerHTML="<span>"+run+"</span>"+(here?"<em>+"+here+"</em>":"");
           b.onclick=function(){ J[kind][pi]=(J[kind][pi]+1)%4; save(); render(); };
           jrow.appendChild(b);
@@ -2366,7 +2383,7 @@ html,body{
       var ctl=document.createElement("div"); ctl.className="gctl";
       var minus=document.createElement("button"); minus.className="gbtn"; minus.textContent="−";
       minus.onclick=function(){ if(J[key]>0){ J[key]--; save(); render(); } };
-      var val=document.createElement("div"); val.className="gval"+(here?" here":"");
+      var val=document.createElement("div"); val.className="gval"+(run?" has":"")+(here?" here":"");
       val.textContent=run;
       var plus=document.createElement("button"); plus.className="gbtn"; plus.textContent="+";
       plus.onclick=function(){ J[key]++; save(); render(); };
