@@ -20,6 +20,11 @@ typed in after the round, and the catch-up path if a hole gets missed live.
 **Results** — team-versus-team two-best-ball net, skins, and the random draw
 (all eight mixed into four pairs, ranked by gross and by net).
 
+**Nassau** — the inside game as the group plays it: X and Y, five ways,
+automatic presses at 2 down, option to double the back, junk pooled by side.
+Every bet as a row with its hole-by-hole run, and the bottom line: who owes
+whom, how much.
+
 **Course / Players** — set once before the round. CCW's pars and white-tee
 rankings are loaded by default.
 
@@ -45,7 +50,7 @@ Two stroke allocations, deliberately different:
 
 | Game | Handicap used |
 |---|---|
-| Inside game | course handicap **minus the low man in the foursome** |
+| Inside game / Nassau | course handicap **minus the low man in the foursome** |
 | Team result + random draw | **raw** course handicap |
 
 Same formula, different input. Sharing one function between them silently
@@ -66,8 +71,9 @@ Kyle's head; the app colours holes.
     node pops_separation_test.js     the two stroke allocations stay separate
     node 4score_rule_verify.js       decoded rules reproduce the real Sheet
     node roster_test.js              the roster keeps its promises
+    node nassau_test.js              the Nassau settles the way the group plays it
 
-Six suites, 76 checks, no framework and no dependencies — each one drives the
+Seven suites, 99 checks, no framework and no dependencies — each one drives the
 real app against a DOM stub. They catch what a syntax check cannot: a deleted
 function still being called, a handler wired to an element that no longer
 exists.

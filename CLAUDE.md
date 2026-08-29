@@ -3,7 +3,7 @@
 Read this first, every session. Then `docs/GOLF_APP_STATE.md` for where things
 stand, and `RESTORE.md` if the machine or the folder is new.
 
-**Current as of 2026-08-28: live at v14, six suites / 76 checks all green,
+**Current as of 2026-08-29: live at v21, seven suites / 99 checks all green,
 nothing blocking.**
 
 ---
@@ -47,7 +47,7 @@ otherwise. `mixed-up-golf-v1` → `v2` → and so on.
 
 | Game | Handicap used |
 |---|---|
-| Inside game (Holes) | course handicap **minus the low man in the foursome** |
+| Inside game (Holes, Nassau) | course handicap **minus the low man in the foursome** |
 | Team result + random draw | **raw** course handicap |
 
 Same formula, different input — which is exactly what makes consolidating them
@@ -77,8 +77,9 @@ guessed at. Keep doing that — it caught several things reasoning had got wrong
     node pops_separation_test.js     the two stroke allocations stay separate
     node 4score_rule_verify.js       decoded rules reproduce the real Sheet
     node roster_test.js              the roster keeps its promises
+    node nassau_test.js              the Nassau settles the way the group plays it
 
-Six suites, 76 checks. All green as of 2026-08-28. Run them all — they are fast,
+Seven suites, 99 checks. All green as of 2026-08-29. Run them all — they are fast,
 and two of them once passed while silently testing nothing (see below).
 
 **A test that passes by testing nothing is worse than one that fails.** Adding a
@@ -124,7 +125,7 @@ This has now caused three rounds of "not updating on my phone". It is almost
 never a broken deploy; it is one of these two waits.
 
 **To check the phone actually updated, look at the bottom of the Players
-screen.** It shows the version - v14, and so on. The number is not written in
+screen.** It shows the version - v21, and so on. The number is not written in
 `index.html`; the page asks the service worker that is serving it and the worker
 answers out of its own `CACHE` string, so the stamp cannot drift from what is
 really installed. "not installed" means no service worker has taken over yet.
@@ -156,6 +157,30 @@ is public. `.gitignore` has no effect on a file git already tracks - that is how
 kept out. To stop tracking one: `git rm --cached <file>`, then commit.
 
 ---
+
+## The Nassau (added 2026-08-29, v18-v21)
+
+The inside game as the group actually plays it: **X and Y, five ways,
+automatic presses, option to double the back.** Its own bottom tab. Kyle taught
+it one worked example at a time and every number he agreed to is a case in
+`nassau_test.js`, which runs the app's real `nassau()` - not a copy - so it
+cannot pass while the app is wrong. **That test is the rule book.** Read it
+before touching the game; the rules in one paragraph:
+
+- front 1X, back 2X (4X doubled), overall 2X by holes won across 18
+- a press starts automatically the hole after a bet reaches 2 down, is worth
+  1X on either nine, and only the NEWEST bet on a nine spawns the next one
+- a tied bet is "sawed off" (nobody pays); a tied front can carry to the back
+  as a setting, and stays 1X even if the back is doubled
+- junk (birdies, chippies, sandies, greenies) is Y each, pooled by side
+- defaults X=$5, Y=$2; the double is cleared by New round, X/Y/carry persist
+
+It consumes the per-hole result `insideGame()` already produces. **The stroke
+allocation did not move** - rule 4 above still holds and
+`pops_separation_test.js` still guards it.
+
+One thing Kyle has not ruled on, treated as no new press: a press that goes 2
+up for one side and then swings to 2 down for the other. Ask before changing.
 
 ## Relationship to ScannerBot
 
