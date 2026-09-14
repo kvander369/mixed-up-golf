@@ -1,10 +1,10 @@
 # Golf app — living state
 
-Written 2026-08-23, current as of **2026-08-29**. **Read this first** when
+Written 2026-08-23, current as of **2026-09-13**. **Read this first** when
 picking the golf app back up.
 
 > **Where it stands in one line:** built, deployed, hand-checked against a real
-> card, and in use. Live at v21. Seven test suites, 101 checks, all passing.
+> card, and in use. Live at v21. Seven test suites, 102 checks, all passing.
 > Nothing blocking.
 Design decisions live in `GOLF_PWA_PART1.md` and `GOLF_PWA_PART2_RULES.md`;
 this file is where things stand and what to do next.
@@ -117,7 +117,7 @@ renamed with it.
 | `sw.js` | Cache-first service worker. `CACHE` is the only string an installed phone compares |
 | `manifest.webmanifest` | Name, icons, standalone display, theme colour |
 | `icon-192.png`, `icon-512.png` | PWA icons — Ernie on brand green `#8FD974` |
-| `smoke.js` | Renders every screen and fires every control against a DOM stub — 19 checks |
+| `smoke.js` | Renders every screen and fires every control against a DOM stub — 20 checks |
 | `live_test.js` | Change one score, everything downstream updates — 5 checks |
 | `skins_test.js` | Gross only, birdie-or-better, ties knock out — 9 checks |
 | `pops_separation_test.js` | Guards the two different stroke allocations (see below) — 7 checks |
@@ -131,8 +131,9 @@ Four files are **gitignored on purpose** and a fresh clone will not have them:
 `RESUME-Claude.bat`, `seat-check.ps1`, `icon.png`, `mixedupgolf.ico`.
 `RESTORE.md` says how to get each one back.
 
-Run all seven suites after any change to `index.html`. As of 2026-08-29 they are
-101 checks and all green.
+Run all seven suites after any change to `index.html`. As of 2026-09-13 they are
+102 checks and all green. Count them rather than trusting this line — the
+one-line loop is in `CLAUDE.md` under Tests.
 
 **Nothing has a build step.** Open Question 2 in `GOLF_PWA_PART1.md` is answered:
 this is one HTML file, so it can live in Drive with everything else and no local

@@ -3,7 +3,7 @@
 Read this first, every session. Then `docs/GOLF_APP_STATE.md` for where things
 stand, and `RESTORE.md` if the machine or the folder is new.
 
-**Current as of 2026-08-29: live at v21, seven suites / 101 checks all green,
+**Current as of 2026-09-13: live at v21, seven suites / 102 checks all green,
 nothing blocking.**
 
 ---
@@ -79,8 +79,14 @@ guessed at. Keep doing that — it caught several things reasoning had got wrong
     node roster_test.js              the roster keeps its promises
     node nassau_test.js              the Nassau settles the way the group plays it
 
-Seven suites, 101 checks. All green as of 2026-08-29. Run them all — they are fast,
+Seven suites, 102 checks. All green as of 2026-09-13. Run them all — they are fast,
 and two of them once passed while silently testing nothing (see below).
+
+The count was written as 101 from 2026-08-29 to 2026-09-13: the Nassau tab added
+a twentieth check to `smoke.js` and the docs never picked it up. Do not trust the
+number here; count it. In Bash, every suite's exit code and its PASS lines:
+
+    for t in smoke live_test skins_test pops_separation_test 4score_rule_verify roster_test nassau_test; do out=$(node $t.js 2>&1); echo "$t exit=$? pass=$(echo "$out" | grep -c '^PASS') fail=$(echo "$out" | grep -c FAIL)"; done
 
 **A test that passes by testing nothing is worse than one that fails.** Adding a
 `<script>` to `<head>` for the zoom fix broke `smoke.js` and `live_test.js`
