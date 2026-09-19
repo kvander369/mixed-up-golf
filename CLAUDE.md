@@ -3,7 +3,7 @@
 Read this first, every session. Then `docs/GOLF_APP_STATE.md` for where things
 stand, and `RESTORE.md` if the machine or the folder is new.
 
-**Current as of 2026-09-19: live at v22, eight suites / 116 checks all green,
+**Current as of 2026-09-19: live at v23, eight suites / 116 checks all green,
 nothing blocking.**
 
 ---
@@ -137,7 +137,7 @@ This has now caused three rounds of "not updating on my phone". It is almost
 never a broken deploy; it is one of these two waits.
 
 **To check the phone actually updated, look at the bottom of the Players
-screen.** It shows the version - v22, and so on. The number is not written in
+screen.** It shows the version - v23, and so on. The number is not written in
 `index.html`; the page asks the service worker that is serving it and the worker
 answers out of its own `CACHE` string, so the stamp cannot drift from what is
 really installed. "not installed" means no service worker has taken over yet.
@@ -200,7 +200,7 @@ new press."
 ## Green tees (added 2026-09-19, v22)
 
 Some of the group play CCW from the green tees or the green-white combo. Each
-player row on the Players screen has a **White / Green** button; the roster
+player row on the Players screen has a **W / G** button (white, or green/combo); the roster
 remembers it the way it remembers his CH (last one used).
 
 - The card's "Men's Hdcp/G" row differs from white on **two holes only**: hole 2

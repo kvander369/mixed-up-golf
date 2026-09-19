@@ -535,7 +535,7 @@ html,body{
   }
   .phead span:last-child{text-align:center;}
   /* CCW only: a fourth column for the tee button */
-  .prow.tees,.phead.tees{grid-template-columns:26px 1fr 64px 82px;gap:8px;}
+  .prow.tees,.phead.tees{grid-template-columns:26px 1fr 70px 44px;gap:8px;}
   .phead.tees span:nth-child(3){text-align:center;}
   .teebtn{
     font-family:var(--f-sans);
@@ -546,11 +546,6 @@ html,body{
     cursor:pointer;
   }
   .teebtn.green{background:var(--bar);border-color:var(--bar);color:var(--bar-ink);}
-  .teenote{
-    padding:10px 16px 0;
-    font-family:var(--f-sans);
-    font-size:16px;line-height:1.35;color:var(--ink);
-  }
 
   /* ---------- holes: the whole card, review only ---------- */
   .holes{display:none;}
@@ -2293,7 +2288,7 @@ html,body{
             var tee=document.createElement("button");
             var g=!!state.roster[i].green;
             tee.className="teebtn"+(g?" green":"");
-            tee.textContent=g?"Green":"White";
+            tee.textContent=g?"G":"W";
             tee.dataset.tee=i;
             tee.onclick=function(){
               state.roster[i].green=!state.roster[i].green;
@@ -2306,14 +2301,6 @@ html,body{
         })((teamNo-1)*4+k);
       }
     });
-
-    if(ccw){
-      var tn=document.createElement("div"); tn.className="teenote";
-      tn.textContent="Green = the green tees or the green-white combo. His strokes "
-                   + "on holes 2 and 5 follow the card's green rankings. Type the CH "
-                   + "for the tees he is playing.";
-      w.appendChild(tn);
-    }
 
     var e=document.createElement("div"); e.className="ernie";
     var crop=document.createElement("span"); crop.className="head";

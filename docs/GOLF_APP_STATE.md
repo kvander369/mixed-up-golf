@@ -4,7 +4,7 @@ Written 2026-08-23, current as of **2026-09-19**. **Read this first** when
 picking the golf app back up.
 
 > **Where it stands in one line:** built, deployed, hand-checked against a real
-> card, and in use. Live at v22. Eight test suites, 116 checks, all passing.
+> card, and in use. Live at v23. Eight test suites, 116 checks, all passing.
 > Nothing blocking.
 Design decisions live in `GOLF_PWA_PART1.md` and `GOLF_PWA_PART2_RULES.md`;
 this file is where things stand and what to do next.
@@ -480,3 +480,6 @@ green, and Results marks a green man beside his handicap.
 
 `PART1` §6 had deferred exactly this ("capability kept, screens deferred").
 That decision is now superseded for CCW.
+
+**v23, same day.** Kyle: no write-up under the Players list, and a smaller
+button reading W that switches to G. Done; nothing else changed.

@@ -171,11 +171,11 @@ T('tapping the button flips the man, saves it to the roster, and taps back', () 
   const btn = () => { let f = null; (function walk(e){ if (e.dataset && e.dataset.tee === 3) f = e;
                       (e.children || []).forEach(walk); })(ui); return f; };
   ui.children = []; A.renderPlayers();       // slot 4 is Eli, green, from the test above
-  eq(btn().textContent, 'Green', 'label');
+  eq(btn().textContent, 'G', 'label');
   btn().onclick();
   eq([s.roster[3].green, A.findPerson('Eli').green], [false,false], 'after one tap');
   ui.children = []; A.renderPlayers();
-  eq(btn().textContent, 'White', 'label after the tap');
+  eq(btn().textContent, 'W', 'label after the tap');
   btn().onclick();
   eq([s.roster[3].green, A.findPerson('Eli').green], [true,true], 'after two taps');
 });
