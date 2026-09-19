@@ -4,7 +4,7 @@ Written 2026-08-23, current as of **2026-09-19**. **Read this first** when
 picking the golf app back up.
 
 > **Where it stands in one line:** built, deployed, hand-checked against a real
-> card, and in use. Live at v23. Eight test suites, 116 checks, all passing.
+> card, and in use. Live at v24. Eight test suites, 116 checks, all passing.
 > Nothing blocking.
 Design decisions live in `GOLF_PWA_PART1.md` and `GOLF_PWA_PART2_RULES.md`;
 this file is where things stand and what to do next.
@@ -483,3 +483,12 @@ That decision is now superseded for CCW.
 
 **v23, same day.** Kyle: no write-up under the Players list, and a smaller
 button reading W that switches to G. Done; nothing else changed.
+
+**v24, same day - a stamp that lied.** Kyle's phone showed v23 at the bottom of
+Players but still drew the v22 screen. Cause: on install the worker filled its
+new cache with `cache.addAll(SHELL)`, which goes through the browser's ordinary
+HTTP cache, and GitHub serves `max-age=600` - so two releases inside ten
+minutes left the v23 cache holding the v22 `index.html`. `sw.js` now fetches
+the shell with `cache:'reload'`. The stamp proves which WORKER is installed;
+before this fix it did not prove which page that worker had cached.
+Not yet confirmed on the phone - record it here when Kyle sees W/G under v24.

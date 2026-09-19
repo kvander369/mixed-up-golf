@@ -6,7 +6,7 @@
  *
  * Bump CACHE when the app changes — the old cache is deleted on activate.
  */
-const CACHE = 'mixed-up-golf-v23';
+const CACHE = 'mixed-up-golf-v24';
 
 /* The app shell. index.html is one self-contained file, so this is short. */
 const SHELL = [
@@ -20,7 +20,11 @@ const SHELL = [
 self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(CACHE)
-      .then(c => c.addAll(SHELL))
+      /* cache:'reload' goes past the browser's own HTTP cache. Without it a
+         new worker can fill its new cache with the OLD index.html the browser
+         fetched minutes earlier (GitHub serves max-age=600) - which is how a
+         phone showed v23 on the stamp and v22 on the screen, 2026-09-19. */
+      .then(c => c.addAll(SHELL.map(u => new Request(u, { cache: 'reload' }))))
       .then(() => self.skipWaiting())          // take over without a second visit
   );
 });
