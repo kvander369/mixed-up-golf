@@ -139,8 +139,15 @@ never a broken deploy; it is one of these two waits.
 **To check the phone actually updated, look at the bottom of the Players
 screen.** It shows the version - v24, and so on. The number is not written in
 `index.html`; the page asks the service worker that is serving it and the worker
-answers out of its own `CACHE` string, so the stamp cannot drift from what is
-really installed. "not installed" means no service worker has taken over yet.
+answers out of its own `CACHE` string. "not installed" means no service worker
+has taken over yet.
+
+**The stamp names the WORKER, not the page.** On 2026-09-19 a phone showed v23
+and drew the v22 screen: two releases went out inside GitHub's 10 minutes, and
+the new worker filled its cache with the old `index.html` from the browser's
+HTTP cache. `sw.js` now fetches the shell with `cache:'reload'` (v24, confirmed
+on Kyle's phone). If it ever recurs, that line in `sw.js` is the first place to
+look - and do not push two releases within ten minutes without saying so.
 
 `gh` 2.98.0 is installed at `C:\Program Files\GitHub CLI\gh.exe`. The device-flow login that was abandoned
 mid-setup has since been finished, so pushing works from here.
