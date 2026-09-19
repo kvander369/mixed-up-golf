@@ -491,4 +491,5 @@ HTTP cache, and GitHub serves `max-age=600` - so two releases inside ten
 minutes left the v23 cache holding the v22 `index.html`. `sw.js` now fetches
 the shell with `cache:'reload'`. The stamp proves which WORKER is installed;
 before this fix it did not prove which page that worker had cached.
-Not yet confirmed on the phone - record it here when Kyle sees W/G under v24.
+**Confirmed on the phone 2026-09-19:** Kyle saw the W/G buttons and no write-up
+under v24 ("thats good job completed!").
