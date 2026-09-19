@@ -534,6 +534,23 @@ html,body{
     color:var(--ink-3);
   }
   .phead span:last-child{text-align:center;}
+  /* CCW only: a fourth column for the tee button */
+  .prow.tees,.phead.tees{grid-template-columns:26px 1fr 64px 82px;gap:8px;}
+  .phead.tees span:nth-child(3){text-align:center;}
+  .teebtn{
+    font-family:var(--f-sans);
+    font-size:17px;font-weight:700;
+    padding:9px 0;width:100%;
+    border-radius:7px;border:1px solid var(--ink-2);
+    background:#FFFFFF;color:#0D0D0D;
+    cursor:pointer;
+  }
+  .teebtn.green{background:var(--bar);border-color:var(--bar);color:var(--bar-ink);}
+  .teenote{
+    padding:10px 16px 0;
+    font-family:var(--f-sans);
+    font-size:16px;line-height:1.35;color:var(--ink);
+  }
 
   /* ---------- holes: the whole card, review only ---------- */
   .holes{display:none;}
@@ -1574,6 +1591,14 @@ html,body{
     p.hcp = hcp;
     savePeople();
   }
+  /* his tee is remembered exactly as his CH is: the last one used, and never
+     by creating a person */
+  function rememberGreen(name, green){
+    var p = findPerson(name);
+    if(!p) return;
+    p.green = !!green;
+    savePeople();
+  }
   /* the only two doors into the roster */
   function addPerson(name, hcp, full){
     if(!keyOf(name)) return null;
@@ -1694,6 +1719,31 @@ html,body{
      to play there. "New Round > New course" clears it for an away day. */
   function ccwPars(){  return {front:[4,4,3,4,4,4,4,3,5],     back:[4,4,3,4,3,4,4,4,4]}; }
   function ccwRanks(){ return {front:[7,3,15,11,1,13,5,17,9], back:[6,10,18,8,16,2,12,14,4]}; }
+
+  /* CCW, GREEN TEES - read off the card's "Men's Hdcp/G" row (Kyle's photo,
+     2026-09-19). It differs from white on two holes only: hole 2 is printed
+     3/1 and hole 5 is 1/3, white/green. The green-white COMBO plays both of
+     those holes from the green tee (its yardages add to the card's 2829/2839),
+     so a combo man uses this row too: two stroke patterns, not three.
+     The course handicap is still typed by hand for whichever tee he plays. */
+  function ccwGreenRanks(){ return {front:[7,1,15,11,3,13,5,17,9], back:[6,10,18,8,16,2,12,14,4]}; }
+  /* the green row only means something on CCW's own card; an away course has
+     the one set of rankings somebody typed in */
+  function isCCW(){
+    return JSON.stringify(state.ranks)===JSON.stringify(ccwRanks());
+  }
+  function onGreen(i){ return !!state.roster[i].green && isCCW(); }
+  /* THE rankings a man's strokes are placed by. Both games call this - what
+     must stay different between them is the HANDICAP fed to strokesFor
+     (rule 4), never the hole ranking. */
+  function ranksFor(i){ return full(onGreen(i) ? ccwGreenRanks() : state.ranks); }
+  /* the ranking as the card prints it: "3/1" on the two holes where the tees
+     disagree, and only when somebody out there is actually on green */
+  function siText(h){
+    var w=full(state.ranks)[h], g=full(ccwGreenRanks())[h], any=false;
+    for(var i=0;i<activeCount();i++) if(onGreen(i)) any=true;
+    return (any && g!==w) ? w+"/"+g : String(w);
+  }
 
   /* Junk is entered BY HAND — Kyle: "No formula will work."
      Per hole: who got a birdie / chippie / sandie, and how many greenies each
@@ -1977,8 +2027,9 @@ html,body{
     return Math.floor(hcp/18) + (hdcp <= hcp%18 ? 1 : 0);
   }
   function netOf(i, ranks){
-    var sc=playerScores(i);
-    return sc.map(function(g,h){ return g - strokesFor(phcp(i), ranks[h]); });
+    /* a green-tee man at CCW is placed by the green row, whatever was passed */
+    var sc=playerScores(i), r=onGreen(i) ? ranksFor(i) : ranks;
+    return sc.map(function(g,h){ return g - strokesFor(phcp(i), r[h]); });
   }
   function twoBestBallNet(idxs, ranks){
     var nets=idxs.map(function(i){ return netOf(i,ranks); }), t=0;
@@ -2180,6 +2231,7 @@ html,body{
   function renderPlayers(){
     var w=document.getElementById("playersUI");
     w.innerHTML="";
+    var ccw=isCCW();
 
     [1,2].forEach(function(teamNo){
       var h=document.createElement("div");
@@ -2190,12 +2242,14 @@ html,body{
 
       var head=document.createElement("div");
       head.className="phead";
-      head.innerHTML="<span></span><span>Name</span><span>Course hcp</span>";
+      head.innerHTML="<span></span><span>Name</span>"
+                    +(ccw?"<span>CH</span><span>Tees</span>":"<span>Course hcp</span>");
+      if(ccw) head.className+=" tees";
       w.appendChild(head);
 
       for(var k=0;k<4;k++){
         (function(i){
-          var r=document.createElement("div"); r.className="prow";
+          var r=document.createElement("div"); r.className="prow"+(ccw?" tees":"");
 
           /* 1-8, not A-D. The app talks in player numbers everywhere else, and
              the inside game is 1&2 against 3&4 — so the slot number IS the
@@ -2231,10 +2285,35 @@ html,body{
           hc.onkeydown=function(e){ if(e.key==="Enter"){ e.preventDefault(); advance(i); } };
 
           r.appendChild(slot); r.appendChild(nm); r.appendChild(hc);
+
+          /* WHITE OR GREEN. One tap. Green covers the green tees AND the
+             green-white combo - same stroke pattern (see ccwGreenRanks). Only
+             offered on CCW's card; away, there is one set of rankings. */
+          if(ccw){
+            var tee=document.createElement("button");
+            var g=!!state.roster[i].green;
+            tee.className="teebtn"+(g?" green":"");
+            tee.textContent=g?"Green":"White";
+            tee.dataset.tee=i;
+            tee.onclick=function(){
+              state.roster[i].green=!state.roster[i].green;
+              rememberGreen(state.roster[i].name, state.roster[i].green);
+              save(); render();
+            };
+            r.appendChild(tee);
+          }
           w.appendChild(r);
         })((teamNo-1)*4+k);
       }
     });
+
+    if(ccw){
+      var tn=document.createElement("div"); tn.className="teenote";
+      tn.textContent="Green = the green tees or the green-white combo. His strokes "
+                   + "on holes 2 and 5 follow the card's green rankings. Type the CH "
+                   + "for the tees he is playing.";
+      w.appendChild(tn);
+    }
 
     var e=document.createElement("div"); e.className="ernie";
     var crop=document.createElement("span"); crop.className="head";
@@ -2280,9 +2359,9 @@ html,body{
 
     var net=[], gross=[];
     for(var p=0;p<4;p++){
-      var sc=playerScores(p), nr=[];
+      var sc=playerScores(p), nr=[], pr=ranksFor(p);
       for(var q=0;q<18;q++){
-        nr.push(sc[q]===null ? null : sc[q]-strokesFor(pops[p], ranks[q]));
+        nr.push(sc[q]===null ? null : sc[q]-strokesFor(pops[p], pr[q]));
       }
       gross.push(sc); net.push(nr);
     }
@@ -2452,7 +2531,7 @@ html,body{
     var pt = g.ready ? g.pts[h] : null;
     mid.innerHTML="<div class='henum'>"+(h+1)+"</div><div class='hemeta'>"
       +(pars[h]===null?"Par —":"Par "+pars[h])+" &nbsp;·&nbsp; "
-      +(ranks[h]===null?"SI —":"SI "+ranks[h])+"</div>";
+      +(ranks[h]===null?"SI —":"SI "+siText(h))+"</div>";
     var nav2=document.createElement("button");
     nav2.className="henav"; nav2.textContent="›"; nav2.disabled=(h===17);
     nav2.onclick=function(){ state.holeIdx++; state.holeSel=0; save(); render(); };
@@ -2481,7 +2560,7 @@ html,body{
         var side = pt==="12"&&p<2 ? " won12" : pt==="34"&&p>=2 ? " won34" : "";
         cellb.className="hecell"+(p<2?" p12":" p34")
                        +(state.holeSel===p?" sel":"")+(v===null?" empty":"")+side;
-        var shots = (g.ready && ranks[h]!==null) ? strokesFor(g.pops[p], ranks[h]) : 0;
+        var shots = (g.ready && ranks[h]!==null) ? strokesFor(g.pops[p], ranksFor(p)[h]) : 0;
         if(shots) cellb.className += " pop"+(shots>1?" pop2":"");
         cellb.innerHTML="<em>"+pname(p)+"</em>"
                        +"<span>"+(v===null?"·":v)+"</span>";
@@ -2638,7 +2717,7 @@ html,body{
         var r=row("hxtap");
         var meta=[];
         if(pars[hole]!==null)  meta.push("par "+pars[hole]);
-        if(ranks[hole]!==null) meta.push("si "+ranks[hole]);
+        if(ranks[hole]!==null) meta.push("si "+siText(hole));
         var hc=cell("","hnum");
         hc.innerHTML="<b>"+(hole+1)+"</b>"+(meta.length?"<i>"+meta.join(" · ")+"</i>":"");
         r.appendChild(hc);
@@ -2653,7 +2732,7 @@ html,body{
              so two (or more) shots read instantly. Kyle at 21 pops gets two on
              stroke index 1-3, which is common, not an edge case. */
           var shots = (g.ready && ranks[hole]!==null)
-                        ? strokesFor(g.pops[i], ranks[hole]) : 0;
+                        ? strokesFor(g.pops[i], ranksFor(i)[hole]) : 0;
           if(shots) cls += " pop"+(shots>1?" pop2":"");
           var c=cell(v===null?"·":v, cls);
           if(shots) c.dataset.pops=shots;
@@ -2775,7 +2854,7 @@ html,body{
       {name:"Team 2", idxs:[4,5,6,7]}
     ].map(function(t){
       t.score=twoBestBallNet(t.idxs, ranks);
-      t.roster=t.idxs.map(function(i){ return pname(i)+" ("+phcp(i)+")"; }).join(" · ");
+      t.roster=t.idxs.map(function(i){ return pname(i)+" ("+phcp(i)+(onGreen(i)?" green":"")+")"; }).join(" · ");
       return t;
     }).sort(function(a,b){ return a.score-b.score; });
 
@@ -3320,6 +3399,7 @@ html,body{
   function assignPerson(slot, p){
     state.roster[slot].name = p.name;
     state.roster[slot].hcp  = p.hcp || "";
+    state.roster[slot].green = !!p.green;
     save(); closePick(); render();
   }
 
@@ -3329,6 +3409,7 @@ html,body{
     pickEl("pickClear").onclick  = function(){
       state.roster[pickTarget].name = "";
       state.roster[pickTarget].hcp  = "";
+      state.roster[pickTarget].green = false;
       save(); closePick(); render();
     };
     /* today only: he goes in the slot and nowhere else */
@@ -3341,6 +3422,7 @@ html,body{
       var r = state.roster[pickTarget];
       if(!isGuest(r.name)) return;
       addPerson(r.name, r.hcp);
+      rememberGreen(r.name, r.green);
       closePick(); render();
     };
   }

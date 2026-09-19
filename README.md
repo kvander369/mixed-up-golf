@@ -72,8 +72,9 @@ Kyle's head; the app colours holes.
     node 4score_rule_verify.js       decoded rules reproduce the real Sheet
     node roster_test.js              the roster keeps its promises
     node nassau_test.js              the Nassau settles the way the group plays it
+    node tees_test.js                green tees move a stroke from hole 5 to hole 2, at CCW only
 
-Seven suites, 102 checks, no framework and no dependencies — each one drives the
+Eight suites, 116 checks, no framework and no dependencies — each one drives the
 real app against a DOM stub. They catch what a syntax check cannot: a deleted
 function still being called, a handler wired to an element that no longer
 exists.

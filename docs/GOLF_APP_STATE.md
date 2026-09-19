@@ -1,10 +1,10 @@
 # Golf app — living state
 
-Written 2026-08-23, current as of **2026-09-13**. **Read this first** when
+Written 2026-08-23, current as of **2026-09-19**. **Read this first** when
 picking the golf app back up.
 
 > **Where it stands in one line:** built, deployed, hand-checked against a real
-> card, and in use. Live at v21. Seven test suites, 102 checks, all passing.
+> card, and in use. Live at v22. Eight test suites, 116 checks, all passing.
 > Nothing blocking.
 Design decisions live in `GOLF_PWA_PART1.md` and `GOLF_PWA_PART2_RULES.md`;
 this file is where things stand and what to do next.
@@ -124,6 +124,7 @@ renamed with it.
 | `4score_rule_verify.js` | Decoded 4Score rules reproduce the real Sheet's own columns — 9 checks |
 | `roster_test.js` | The roster keeps its promises — 27 checks |
 | `nassau_test.js` | The Nassau settles the way the group plays it; runs the app's real function — 25 checks |
+| `tees_test.js` | Green tees at CCW: a stroke moves from hole 5 to hole 2, in both games, and nowhere else; runs the app's real functions — 14 checks |
 | `CLAUDE.md` | Read first, every session |
 | `RESTORE.md` | What a clone does NOT bring back, and where the data actually lives |
 
@@ -131,8 +132,8 @@ Four files are **gitignored on purpose** and a fresh clone will not have them:
 `RESUME-Claude.bat`, `seat-check.ps1`, `icon.png`, `mixedupgolf.ico`.
 `RESTORE.md` says how to get each one back.
 
-Run all seven suites after any change to `index.html`. As of 2026-09-13 they are
-102 checks and all green. Count them rather than trusting this line — the
+Run all eight suites after any change to `index.html`. As of 2026-09-19 they are
+116 checks and all green. Count them rather than trusting this line — the
 one-line loop is in `CLAUDE.md` under Tests.
 
 **Nothing has a build step.** Open Question 2 in `GOLF_PWA_PART1.md` is answered:
@@ -465,3 +466,17 @@ time: check it after a long gap and record the answer here.
 
 Everything else on the old "what is left" list is done: service worker and
 manifest, hosting, `viewport-fit=cover`, and the hand-check.
+
+## 2026-09-19 — green tees (v22)
+
+Kyle, after a round on 2026-09-18: nobody could be set to play the greens or
+the green-white combo. He sent a photo of the CCW card. What it showed, and
+what was built, is in `CLAUDE.md` under "Green tees". In short: a White / Green
+button per player on the Players screen (CCW only), remembered by the roster;
+green and combo share one stroke pattern, which differs from white only in
+swapping the rankings of holes 2 and 5; the CH is still typed by hand. The
+hole screens print the ranking as the card does ("3/1") when somebody is on
+green, and Results marks a green man beside his handicap.
+
+`PART1` §6 had deferred exactly this ("capability kept, screens deferred").
+That decision is now superseded for CCW.

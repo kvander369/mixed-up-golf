@@ -3,7 +3,7 @@
 Read this first, every session. Then `docs/GOLF_APP_STATE.md` for where things
 stand, and `RESTORE.md` if the machine or the folder is new.
 
-**Current as of 2026-09-13: live at v21, seven suites / 102 checks all green,
+**Current as of 2026-09-19: live at v22, eight suites / 116 checks all green,
 nothing blocking.**
 
 ---
@@ -54,6 +54,11 @@ Same formula, different input — which is exactly what makes consolidating them
 look correct and produce silently wrong net scores. Guarded by
 `pops_separation_test.js`. Detail in `docs/GOLF_PWA_PART2_RULES.md` §2b.
 
+To be exact about what is and is not shared: the placement arithmetic,
+`strokesFor()`, IS one function and that is fine. What must never be merged is
+the handicap number fed to it - `phcp(i)` in `netOf()` for the team game,
+`pops[p]` in `insideGame()` for the inside game.
+
 **5. Only gross scores reach the screen.** Net decides the hole colours and is
 never shown per hole, because the same gross score legitimately nets differently
 in the two games. The one exception is the team total on Results, labelled as
@@ -78,15 +83,16 @@ guessed at. Keep doing that — it caught several things reasoning had got wrong
     node 4score_rule_verify.js       decoded rules reproduce the real Sheet
     node roster_test.js              the roster keeps its promises
     node nassau_test.js              the Nassau settles the way the group plays it
+    node tees_test.js                green tees move a stroke from hole 5 to hole 2, at CCW only
 
-Seven suites, 102 checks. All green as of 2026-09-13. Run them all — they are fast,
+Eight suites, 116 checks. All green as of 2026-09-19. Run them all — they are fast,
 and two of them once passed while silently testing nothing (see below).
 
 The count was written as 101 from 2026-08-29 to 2026-09-13: the Nassau tab added
 a twentieth check to `smoke.js` and the docs never picked it up. Do not trust the
 number here; count it. In Bash, every suite's exit code and its PASS lines:
 
-    for t in smoke live_test skins_test pops_separation_test 4score_rule_verify roster_test nassau_test; do out=$(node $t.js 2>&1); echo "$t exit=$? pass=$(echo "$out" | grep -c '^PASS') fail=$(echo "$out" | grep -c FAIL)"; done
+    for t in smoke live_test skins_test pops_separation_test 4score_rule_verify roster_test nassau_test tees_test; do out=$(node $t.js 2>&1); echo "$t exit=$? pass=$(echo "$out" | grep -c '^PASS') fail=$(echo "$out" | grep -c FAIL)"; done
 
 **A test that passes by testing nothing is worse than one that fails.** Adding a
 `<script>` to `<head>` for the zoom fix broke `smoke.js` and `live_test.js`
@@ -131,7 +137,7 @@ This has now caused three rounds of "not updating on my phone". It is almost
 never a broken deploy; it is one of these two waits.
 
 **To check the phone actually updated, look at the bottom of the Players
-screen.** It shows the version - v21, and so on. The number is not written in
+screen.** It shows the version - v22, and so on. The number is not written in
 `index.html`; the page asks the service worker that is serving it and the worker
 answers out of its own `CACHE` string, so the stamp cannot drift from what is
 really installed. "not installed" means no service worker has taken over yet.
@@ -190,6 +196,27 @@ when the bet above it is at 2, the two then move in step, and the newer one
 reaches 2 down first. `nassau_test.js` proves it. Kyle confirmed the related
 case in his own words: "2 and 0, then 1 and 1, then 0 and 2 - this starts a
 new press."
+
+## Green tees (added 2026-09-19, v22)
+
+Some of the group play CCW from the green tees or the green-white combo. Each
+player row on the Players screen has a **White / Green** button; the roster
+remembers it the way it remembers his CH (last one used).
+
+- The card's "Men's Hdcp/G" row differs from white on **two holes only**: hole 2
+  is ranked 3 white / 1 green, hole 5 is 1 white / 3 green. `ccwGreenRanks()`.
+- **The combo uses the green row.** It plays 2 and 5 from green (checked: the
+  arrows on the card add to its printed 2829 / 2839). Two patterns, not three.
+- So the button changes a result only when a man is getting 1 or 2 strokes (or
+  19 or 20): one shot lands on hole 2 instead of hole 5.
+- **The CH is still typed by hand** for the tees he is playing. The app knows
+  no slope or rating, on purpose (Kyle, 2026-09-19).
+- **CCW only.** `isCCW()` is true while the rankings equal the CCW white row;
+  away, the button is hidden and the flag does nothing.
+- Both games get a man's rankings from `ranksFor(i)`. Rule 4 is untouched: the
+  handicap inputs stay separate. `tees_test.js` runs the app's real
+  `insideGame()` and `netOf()`, and was shown to fail (8 checks) against a copy
+  with the green row set back to white.
 
 ## Relationship to ScannerBot
 
