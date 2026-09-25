@@ -199,15 +199,8 @@ T('an unplayed hole moves nothing and cannot trigger a press', () => {
   eq(r.front.bets[0].run[1], null);
 });
 
-/* ---- junk, pooled by side ---- */
-T('junk is per man on the card, pooled by side for the money', () => {
-  const st = A.st();
-  for (let h = 0; h < 18; h++) st.junk[h] = {b:[0,0,0,0], c:[0,0,0,0], s:[0,0,0,0], g12:0, g34:0};
-  st.junk[0].b = [1,0,0,0];  st.junk[3].c = [0,1,0,1];  st.junk[7].s = [1,1,0,0];
-  st.junk[10].g12 = 1;       st.junk[11].g34 = 2;       st.junk[17].b = [0,1,1,0];
-  const j = A.junkPool();
-  eq([j.p12, j.p34, j.diff], [6, 4, 2], 'side 12 six, side 34 four, up two');
-});
+/* junk, pooled by side, moved to junk_test.js on 2026-09-25 when birdies
+   started being counted off the card. */
 
 console.log(fail ? `\n${fail} FAILED` : '\nThe Nassau settles the way the group plays it.');
 process.exit(fail ? 1 : 0);

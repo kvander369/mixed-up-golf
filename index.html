@@ -1001,6 +1001,17 @@ html,body{
   .junkbtn.on.j12{background:var(--live);border-color:var(--live);color:#0B0B0B;}
   .junkbtn.on.j34{background:var(--gold);border-color:var(--gold);color:#0B0B0B;}
   .junkbtn.on em{color:#0B0B0B;opacity:.65;}
+  /* birdies are counted off the card: a plain box, not a button */
+  .junkbtn.auto{cursor:default;text-align:center;}
+  /* an unlocked row: a heavy white edge so it is plain which row is live */
+  .junkbtn.open{border:3px solid var(--ink);}
+  .junkbtn.open span{line-height:40px;}
+  /* the word IS the switch for chippies and sandies, so it must look like one */
+  .junktog{
+    height:46px;border-radius:8px;border:2px solid var(--ink);
+    background:transparent;padding:0 6px;text-align:center;cursor:pointer;
+  }
+  .junktog.open{background:var(--ink);color:#0B0B0B;}
 
   .greenies{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:5px 12px calc(8px + env(safe-area-inset-bottom));}
   .gstep{
@@ -1680,8 +1691,6 @@ html,body{
   }
   function demoJunk(){
     var j=defaultJunk();
-    j[17].b[2]=1;              // Cody's birdie on 18
-    j[8].b[7]=1;               // Tom's birdie on 9
     j[3].s[0]=1;               // Kyle out of the sand on 4
     j[10].c[3]=1;              // Drew chips in on 11
     j[6].c[1]=1;               // Blake chips in on 7
@@ -1740,9 +1749,10 @@ html,body{
     return (any && g!==w) ? w+"/"+g : String(w);
   }
 
-  /* Junk is entered BY HAND — Kyle: "No formula will work."
-     Per hole: who got a birdie / chippie / sandie, and how many greenies each
-     side took. Presses are NOT tracked; Kyle keeps those in his head. */
+  /* Chippies, sandies and greenies are entered BY HAND — Kyle: "No formula
+     will work." Birdies are NOT: since 2026-09-25 they are read off the card
+     by birdiesOn(). The b arrays below are still carried so an old saved
+     round loads, but nothing reads them. */
   function defaultNassau(){ return {x:5, y:2, carry:false, doubleBack:false}; }
   function defaultJunk(){
     var a=[];
@@ -1751,6 +1761,9 @@ html,body{
   }
 
   var justLanded = -1;   /* cell index to animate on this render */
+  /* which junk row is unlocked, and on which hole. Not saved: a reopened
+     app starts with every row locked. */
+  var junkOpen = {kind:null, hole:-1};
   var wasComplete = false;
 
   var state = {
@@ -2461,11 +2474,19 @@ html,body{
   }
   /* junk is per man on the card, pooled by side for the money: the
      difference in team totals, times Y. Greenies are already booked by pair. */
+  /* birdies are counted, not tapped (Kyle, 2026-09-25): natural (gross)
+     only, one per stroke under par, so an eagle pays as two birdies. */
+  function birdiesOn(h,p){
+    var par=full(state.pars)[h], v=state.scores[p+(h<9?"-front":"-back")][h%9];
+    return (par===null || v===null) ? 0 : Math.max(0, par-v);
+  }
   function junkPool(){
     var t={p12:0,p34:0};
     for(var h=0;h<18;h++){
       var J=state.junk[h];
-      ["b","c","s"].forEach(function(k){
+      t.p12 += birdiesOn(h,0)+birdiesOn(h,1);
+      t.p34 += birdiesOn(h,2)+birdiesOn(h,3);
+      ["c","s"].forEach(function(k){
         t.p12 += J[k][0]+J[k][1];
         t.p34 += J[k][2]+J[k][3];
       });
@@ -2588,30 +2609,57 @@ html,body{
     pad.appendChild(clr); pad.appendChild(spacer); pad.appendChild(nxt);
     pw.appendChild(pad); w.appendChild(pw);
 
-    /* junk cells are counters: tap to add one, past 3 clears. The small
-       corner number is that player's running total for the round. */
+    /* the junk grid. Big number = the man's ROUND total; the small corner
+       "+n" = how many came from this hole.
+
+       Birdies are counted off the card and cannot be tapped.
+
+       Chippies and sandies are LOCKED until the word is tapped (Kyle,
+       2026-09-25: too easy to hit by accident, and no visible way back).
+       Tapping the word opens that row for this hole only: each cell then
+       shows THIS HOLE's count, large, and cycles 0-1-2-3-4-5-0, so zero is
+       always one tap-round away. The row locks again on a second tap of the
+       word or on moving to another hole. */
     var jg=document.createElement("div"); jg.className="junkgrid";
     var hdr=document.createElement("div"); hdr.className="junkrow junkhdr";
     hdr.appendChild(lbl(""));
     for(var q=0;q<4;q++) hdr.appendChild(lbl(shortName(q)));
     jg.appendChild(hdr);
 
-    [["b","Birdie"],["c","Chippie"],["s","Sandie"]].forEach(function(pair){
+    var brow=document.createElement("div"); brow.className="junkrow";
+    brow.appendChild(lbl("Birdie"));
+    for(var bp=0;bp<4;bp++){
+      var bhere=birdiesOn(h,bp), brun=0;
+      for(var bh=0;bh<18;bh++) brun+=birdiesOn(bh,bp);
+      var bc=document.createElement("div");
+      bc.className="junkbtn auto j"+(bp<2?"12":"34")+(brun?" has":"")+(bhere?" on":"");
+      bc.innerHTML="<span>"+brun+"</span>"+(bhere?"<em>+"+bhere+"</em>":"");
+      brow.appendChild(bc);
+    }
+    jg.appendChild(brow);
+
+    if(junkOpen.hole!==h) junkOpen={kind:null, hole:h};
+    [["c","Chippie"],["s","Sandie"]].forEach(function(pair){
+      var kind=pair[0], open=(junkOpen.kind===kind);
       var jrow=document.createElement("div"); jrow.className="junkrow";
-      jrow.appendChild(lbl(pair[1]));
+      var tog=document.createElement("button");
+      tog.className="junklbl junktog"+(open?" open":"");
+      tog.textContent=pair[1];
+      tog.onclick=function(){ junkOpen={kind:(open?null:kind), hole:h}; render(); };
+      jrow.appendChild(tog);
       for(var p=0;p<4;p++){
-        (function(kind,pi){
-          /* the big number is the RUNNING TOTAL for the round — it carries over
-             from previous holes. Tapping adds one (booked against this hole).
-             The small corner number is how many came from this hole, so a
-             mistake can be walked back: tapping past 3 clears this hole. */
+        (function(pi){
           var here=J[kind][pi], run=junkTotal(kind,pi);
           var b=document.createElement("button");
-          b.className="junkbtn j"+(pi<2?"12":"34")+(run?" has":"")+(here?" on":"");
-          b.innerHTML="<span>"+run+"</span>"+(here?"<em>+"+here+"</em>":"");
-          b.onclick=function(){ J[kind][pi]=(J[kind][pi]+1)%4; save(); render(); };
+          b.className="junkbtn j"+(pi<2?"12":"34")+(run?" has":"")+(here?" on":"")+(open?" open":"");
+          if(open){
+            b.innerHTML="<span>"+here+"</span>";
+            b.onclick=function(){ J[kind][pi]=(J[kind][pi]+1)%6; save(); render(); };
+          } else {
+            b.innerHTML="<span>"+run+"</span>"+(here?"<em>+"+here+"</em>":"");
+          }
           jrow.appendChild(b);
-        })(pair[0],p);
+        })(p);
       }
       jg.appendChild(jrow);
     });

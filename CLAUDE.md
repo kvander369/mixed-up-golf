@@ -3,7 +3,7 @@
 Read this first, every session. Then `docs/GOLF_APP_STATE.md` for where things
 stand, and `RESTORE.md` if the machine or the folder is new.
 
-**Current as of 2026-09-19: live at v24, eight suites / 116 checks all green,
+**Current as of 2026-09-25: live at v25, nine suites / 127 checks all green,
 nothing blocking.**
 
 ---
@@ -84,15 +84,16 @@ guessed at. Keep doing that — it caught several things reasoning had got wrong
     node roster_test.js              the roster keeps its promises
     node nassau_test.js              the Nassau settles the way the group plays it
     node tees_test.js                green tees move a stroke from hole 5 to hole 2, at CCW only
+    node junk_test.js                birdies off the card; chippie/sandie locked behind the word
 
-Eight suites, 116 checks. All green as of 2026-09-19. Run them all — they are fast,
+Nine suites, 127 checks. All green as of 2026-09-25. Run them all — they are fast,
 and two of them once passed while silently testing nothing (see below).
 
 The count was written as 101 from 2026-08-29 to 2026-09-13: the Nassau tab added
 a twentieth check to `smoke.js` and the docs never picked it up. Do not trust the
 number here; count it. In Bash, every suite's exit code and its PASS lines:
 
-    for t in smoke live_test skins_test pops_separation_test 4score_rule_verify roster_test nassau_test tees_test; do out=$(node $t.js 2>&1); echo "$t exit=$? pass=$(echo "$out" | grep -c '^PASS') fail=$(echo "$out" | grep -c FAIL)"; done
+    for t in smoke live_test skins_test pops_separation_test 4score_rule_verify roster_test nassau_test tees_test junk_test; do out=$(node $t.js 2>&1); echo "$t exit=$? pass=$(echo "$out" | grep -c '^PASS') fail=$(echo "$out" | grep -c FAIL)"; done
 
 **A test that passes by testing nothing is worse than one that fails.** Adding a
 `<script>` to `<head>` for the zoom fix broke `smoke.js` and `live_test.js`
@@ -191,7 +192,9 @@ before touching the game; the rules in one paragraph:
   1X on either nine, and only the NEWEST bet on a nine spawns the next one
 - a tied bet is "sawed off" (nobody pays); a tied front can carry to the back
   as a setting, and stays 1X even if the back is doubled
-- junk (birdies, chippies, sandies, greenies) is Y each, pooled by side
+- junk (birdies, chippies, sandies, greenies) is Y each, pooled by side.
+  Birdies are counted off the card, gross only, eagle = 2 (v25); the rest
+  are tapped, and chippie/sandie rows unlock only by tapping the word
 - defaults X=$5, Y=$2; the double is cleared by New round, X/Y/carry persist
 
 It consumes the per-hole result `insideGame()` already produces. **The stroke
