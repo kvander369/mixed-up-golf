@@ -3,7 +3,7 @@
 Read this first, every session. Then `docs/GOLF_APP_STATE.md` for where things
 stand, and `RESTORE.md` if the machine or the folder is new.
 
-**Current as of 2026-09-25: live at v26, nine suites / 128 checks all green,
+**Current as of 2026-09-25: live at v27, nine suites / 129 checks all green,
 nothing blocking.**
 
 ---
@@ -86,7 +86,7 @@ guessed at. Keep doing that — it caught several things reasoning had got wrong
     node tees_test.js                green tees move a stroke from hole 5 to hole 2, at CCW only
     node junk_test.js                birdies off the card; chippie/sandie locked behind the word
 
-Nine suites, 128 checks. All green as of 2026-09-25. Run them all — they are fast,
+Nine suites, 129 checks. All green as of 2026-09-25. Run them all — they are fast,
 and two of them once passed while silently testing nothing (see below).
 
 The count was written as 101 from 2026-08-29 to 2026-09-13: the Nassau tab added

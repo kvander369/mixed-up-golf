@@ -143,6 +143,14 @@ T('an open cell adds 0 to 5 on this hole and falls back to the round total', () 
   eq(st.junk[0].c[1], 0, 'this hole stored back at zero');
   eq(st.junk[5].c[1], 2, 'the other hole untouched');
 });
+T('no small corner number on any junk cell, open or locked', () => {
+  /* Kyle, 2026-09-25: "don't even know what those are for" */
+  fresh(); score(0,0,3); st.junk[0].c = [1,1,1,1]; st.junk[0].s = [2,0,0,0]; A.renderHoleEntry();
+  grid().chip.children[0].onclick(); A.renderHoleEntry();
+  const g = grid();
+  cells(g.birdie).concat(cells(g.chip), cells(g.sand)).forEach((c,i) =>
+    eq(/<em>/.test(c.innerHTML), false, 'cell ' + i));
+});
 T('tapping the word again locks the row', () => {
   fresh();
   grid().sand.children[0].onclick(); A.renderHoleEntry();

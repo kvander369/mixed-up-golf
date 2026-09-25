@@ -4,7 +4,7 @@ Written 2026-08-23, current as of **2026-09-19**. **Read this first** when
 picking the golf app back up.
 
 > **Where it stands in one line:** built, deployed, hand-checked against a real
-> card, and in use. Live at v26. Nine test suites, 128 checks, all passing.
+> card, and in use. Live at v27. Nine test suites, 129 checks, all passing.
 > Nothing blocking.
 Design decisions live in `GOLF_PWA_PART1.md` and `GOLF_PWA_PART2_RULES.md`;
 this file is where things stand and what to do next.
@@ -125,7 +125,7 @@ renamed with it.
 | `roster_test.js` | The roster keeps its promises — 27 checks |
 | `nassau_test.js` | The Nassau settles the way the group plays it; runs the app's real function — 24 checks |
 | `tees_test.js` | Green tees at CCW: a stroke moves from hole 5 to hole 2, in both games, and nowhere else; runs the app's real functions — 14 checks |
-| `junk_test.js` | Birdies counted off the card (eagle = 2); chippie/sandie rows locked until the word is tapped, then 0–5 and back to 0; runs the app's real code — 13 checks |
+| `junk_test.js` | Birdies counted off the card (eagle = 2); chippie/sandie rows locked until the word is tapped, then 0–5 and back to 0; runs the app's real code — 14 checks |
 | `CLAUDE.md` | Read first, every session |
 | `RESTORE.md` | What a clone does NOT bring back, and where the data actually lives |
 
@@ -134,7 +134,7 @@ Four files are **gitignored on purpose** and a fresh clone will not have them:
 `RESTORE.md` says how to get each one back.
 
 Run all nine suites after any change to `index.html`. As of 2026-09-25 they are
-128 checks and all green. Count them rather than trusting this line — the
+129 checks and all green. Count them rather than trusting this line — the
 one-line loop is in `CLAUDE.md` under Tests.
 
 **Nothing has a build step.** Open Question 2 in `GOLF_PWA_PART1.md` is answered:
@@ -263,8 +263,8 @@ Sized 58px wide, cropped to 55px tall to trim the long neck stroke to a stub.
 - **Birdies are counted off the card** (since v25): natural (gross) only, one
   per stroke under par, so an eagle is two. The row cannot be tapped.
 - **Chippies, sandies and greenies are hand-entered.** No rules to derive.
-- **Junk cells show the ROUND TOTAL**, carried across holes, with a small `+n`
-  for this hole. At 18 the grid shows the whole round's junk at a glance.
+- **Junk cells show the ROUND TOTAL**, carried across holes. A cell filled
+  with the side colour has some from this hole; there is no `+n` (v27). At 18 the grid shows the whole round's junk at a glance.
 - **Chippie and Sandie rows are locked** until the word is tapped. Open, each
   tap on a cell adds one on this hole, 0-5 and back to 0, while the big number
   stays the round total (showing the hole's count instead read as "all the
@@ -513,3 +513,7 @@ against a copy with eagle = 1, a 0-3 cycle and the rows never locked.
 **v26, same day.** In v25 an opened row switched to this hole's count, so every
 box read 0 and then jumped back. Kyle: "something is off". Opening a row now
 changes no number; `junk_test.js` checks exactly that (13 checks).
+
+**v27, same day.** The small corner `+n` on birdie, chippie and sandie cells
+is gone - Kyle: "don't even know what those are for". The side-colour fill
+still marks a cell with junk on this hole. Greenie steppers unchanged.

@@ -2610,8 +2610,10 @@ html,body{
     pad.appendChild(clr); pad.appendChild(spacer); pad.appendChild(nxt);
     pw.appendChild(pad); w.appendChild(pw);
 
-    /* the junk grid. Big number = the man's ROUND total; the small corner
-       "+n" = how many came from this hole.
+    /* the junk grid. The number is the man's ROUND total. A cell filled
+       with the side colour means some of it came from this hole. The small
+       corner "+n" that used to say how many is gone (Kyle, 2026-09-25:
+        "don't even know what those are for").
 
        Birdies are counted off the card and cannot be tapped.
 
@@ -2634,7 +2636,7 @@ html,body{
       for(var bh=0;bh<18;bh++) brun+=birdiesOn(bh,bp);
       var bc=document.createElement("div");
       bc.className="junkbtn auto j"+(bp<2?"12":"34")+(brun?" has":"")+(bhere?" on":"");
-      bc.innerHTML="<span>"+brun+"</span>"+(bhere?"<em>+"+bhere+"</em>":"");
+      bc.innerHTML="<span>"+brun+"</span>";
       brow.appendChild(bc);
     }
     jg.appendChild(brow);
@@ -2658,7 +2660,7 @@ html,body{
              something is off"). The big number stays the round total; a tap
              moves this hole's share 0-5, so the total climbs by up to five
              and then falls back to where it was. */
-          b.innerHTML="<span>"+run+"</span>"+(here?"<em>+"+here+"</em>":"");
+          b.innerHTML="<span>"+run+"</span>";
           if(open) b.onclick=function(){ J[kind][pi]=(J[kind][pi]+1)%6; save(); render(); };
           jrow.appendChild(b);
         })(p);
