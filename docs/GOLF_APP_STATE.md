@@ -517,3 +517,7 @@ changes no number; `junk_test.js` checks exactly that (13 checks).
 **v27, same day.** The small corner `+n` on birdie, chippie and sandie cells
 is gone - Kyle: "don't even know what those are for". The side-colour fill
 still marks a cell with junk on this hole. Greenie steppers unchanged.
+v25, v26 and v27 went out within six minutes (18:12-18:19). **v27 not yet
+seen on the phone** at close of sitting; the live site was still serving v26.
+Check: `curl "https://kvander369.github.io/mixed-up-golf/sw.js?x=1"` shows
+`v27`, then the bottom of Players on the phone shows v27.
