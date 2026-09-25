@@ -1,7 +1,7 @@
 /* Junk on the hole screen, as Kyle asked for it on 2026-09-25:
  *   - birdies are counted off the card, natural (gross) only; an eagle is two
  *   - chippies and sandies are locked until the word is tapped, then each
- *     cell cycles 0-1-2-3-4-5-0 for this hole; moving holes locks them again
+ *     cell adds 0-5 on this hole and falls back to 0; moving holes locks them again
  *
  * Loads index.html the way smoke.js does and runs the app's real code.
  */
@@ -125,13 +125,23 @@ T('tapping CHIPPIE opens that row only; its cells then count', () => {
   eq(typeof cells(grid().chip)[1].onclick, 'function', 'chippie open');
   eq(typeof cells(grid().sand)[1].onclick, 'undefined', 'sandie still locked');
 });
-T('an open cell cycles 0,1,2,3,4,5 and back to 0, showing this hole', () => {
-  fresh();
+T('opening a row does not change a single number on it', () => {
+  /* Kyle, 2026-09-25, of the first cut: "When I tap on chippee all the
+     boxes show zero. Then they go back to what they were." */
+  fresh(); st.junk[5].c = [2,1,0,3]; A.renderHoleEntry();
+  const before = cells(grid().chip).map(shown);
+  grid().chip.children[0].onclick(); A.renderHoleEntry();
+  eq(cells(grid().chip).map(shown), before);
+  eq(before, [2,1,0,3], 'round totals');
+});
+T('an open cell adds 0 to 5 on this hole and falls back to the round total', () => {
+  fresh(); st.junk[5].c = [0,2,0,0]; A.renderHoleEntry();
   grid().chip.children[0].onclick(); A.renderHoleEntry();
   const seen = [shown(cells(grid().chip)[1])];
   for (let i = 0; i < 6; i++) { cells(grid().chip)[1].onclick(); A.renderHoleEntry(); seen.push(shown(cells(grid().chip)[1])); }
-  eq(seen, [0,1,2,3,4,5,0]);
-  eq(st.junk[0].c[1], 0, 'stored back at zero');
+  eq(seen, [2,3,4,5,6,7,2]);
+  eq(st.junk[0].c[1], 0, 'this hole stored back at zero');
+  eq(st.junk[5].c[1], 2, 'the other hole untouched');
 });
 T('tapping the word again locks the row', () => {
   fresh();

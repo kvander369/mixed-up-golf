@@ -1006,6 +1006,7 @@ html,body{
   /* an unlocked row: a heavy white edge so it is plain which row is live */
   .junkbtn.open{border:3px solid var(--ink);}
   .junkbtn.open span{line-height:40px;}
+  .junkbtn.open em{top:-1px;right:1px;}
   /* the word IS the switch for chippies and sandies, so it must look like one */
   .junktog{
     height:46px;border-radius:8px;border:2px solid var(--ink);
@@ -2616,9 +2617,9 @@ html,body{
 
        Chippies and sandies are LOCKED until the word is tapped (Kyle,
        2026-09-25: too easy to hit by accident, and no visible way back).
-       Tapping the word opens that row for this hole only: each cell then
-       shows THIS HOLE's count, large, and cycles 0-1-2-3-4-5-0, so zero is
-       always one tap-round away. The row locks again on a second tap of the
+       Tapping the word opens that row for this hole only; each tap on a cell
+       then adds one on this hole, 0-5 and back to 0, so a mistake is always
+       one tap-round from undone. The row locks again on a second tap of the
        word or on moving to another hole. */
     var jg=document.createElement("div"); jg.className="junkgrid";
     var hdr=document.createElement("div"); hdr.className="junkrow junkhdr";
@@ -2652,12 +2653,13 @@ html,body{
           var here=J[kind][pi], run=junkTotal(kind,pi);
           var b=document.createElement("button");
           b.className="junkbtn j"+(pi<2?"12":"34")+(run?" has":"")+(here?" on":"")+(open?" open":"");
-          if(open){
-            b.innerHTML="<span>"+here+"</span>";
-            b.onclick=function(){ J[kind][pi]=(J[kind][pi]+1)%6; save(); render(); };
-          } else {
-            b.innerHTML="<span>"+run+"</span>"+(here?"<em>+"+here+"</em>":"");
-          }
+          /* the numbers do not change when a row opens (Kyle, 2026-09-25:
+             switching to this hole's count "all the boxes show zero ...
+             something is off"). The big number stays the round total; a tap
+             moves this hole's share 0-5, so the total climbs by up to five
+             and then falls back to where it was. */
+          b.innerHTML="<span>"+run+"</span>"+(here?"<em>+"+here+"</em>":"");
+          if(open) b.onclick=function(){ J[kind][pi]=(J[kind][pi]+1)%6; save(); render(); };
           jrow.appendChild(b);
         })(p);
       }
