@@ -506,4 +506,4 @@ too easy to hit by accident with no visible undo. Birdies now come from
 Sandie are locked behind their word, and go up to 5 ("it could happen").
 `junk_test.js` runs the app's real code and was shown to fail (7 checks)
 against a copy with eagle = 1, a 0-3 cycle and the rows never locked.
-Not yet seen on a phone.
+**Confirmed on the phone 2026-09-25:** Kyle saw v25 ("perfect!").
