@@ -1,18 +1,18 @@
 # CLAUDE.md — Mixed Up Golf
 
-Read this first, every session. Then `docs/GOLF_APP_STATE.md` for where things
-stand, and `RESTORE.md` if the machine or the folder is new.
+Read this first, every session. Then `STATE.md` for what is open now, and
+`RESTORE.md` if the machine or the folder is new.
 
-**Current as of 2026-09-25: live at v27, nine suites / 129 checks all green,
-nothing blocking.**
+**Before changing a screen, read `STATE-ARCHIVE.md`:** "Decisions made 2026-08-23",
+"Players is home plate", "The demo round", "Ernie", "Screen work". It is history:
+where it and this file disagree, this file wins (it still says "No Nassau logic").
 
 ---
 
 ## What this is
 
 An offline round tracker for Kyle's eight-player golf group. It replaced the
-AppSheet app ("4Score") it was modelled on. Built and deployed 2026-08-23, in
-use since.
+AppSheet app ("4Score") it was modelled on.
 
     index.html                                    the whole app, one file
     https://kvander369.github.io/mixed-up-golf/   live
@@ -25,10 +25,8 @@ directly.
 
 ## Rules that are not negotiable
 
-**1. Do NOT edit `index.html` with broad regex replacements.** Two `perl -0pi`
-one-liners silently destroyed whole functions and ~10KB of code during
-development. Both passed a syntax check and failed only at runtime. Targeted
-edits only.
+**1. Do NOT edit `index.html` with broad regex replacements.** They have silently
+destroyed whole functions that still passed a syntax check. Targeted edits only.
 
 **2. Run the tests after every change.**
 
@@ -36,8 +34,7 @@ edits only.
 
 Renders every screen and fires every control against a DOM stub. It catches what
 a syntax check cannot — deleted functions still being called, bad property
-access, handlers wired to elements that no longer exist. It found two real bugs
-that a syntax check waved through.
+access, handlers wired to elements that no longer exist.
 
 **3. Bump `CACHE` in `sw.js` when the app changes.** The service worker serves
 from cache first, so installed phones keep running the old version forever
@@ -68,9 +65,7 @@ net.
 when you make a claim.
 
 **7. Prove claims, do not assert them.** This project runs the code rather than
-reasoning about it: the scoring rules were verified against the real Sheet's own
-columns, the draw was tested over 2M trials, an image was decoded rather than
-guessed at. Keep doing that — it caught several things reasoning had got wrong.
+reasoning about it, and that has caught several things reasoning got wrong.
 
 ---
 
@@ -85,107 +80,83 @@ guessed at. Keep doing that — it caught several things reasoning had got wrong
     node nassau_test.js              the Nassau settles the way the group plays it
     node tees_test.js                green tees move a stroke from hole 5 to hole 2, at CCW only
     node junk_test.js                birdies off the card; chippie/sandie locked behind the word
+    node state_size_test.js          STATE.md stays one page (150 lines); a 151-line file is refused
 
-Nine suites, 129 checks. All green as of 2026-09-25. Run them all — they are fast,
-and two of them once passed while silently testing nothing (see below).
+Run them all. **Check,** every suite's exit code and its PASS lines, in Bash:
 
-The count was written as 101 from 2026-08-29 to 2026-09-13: the Nassau tab added
-a twentieth check to `smoke.js` and the docs never picked it up. Do not trust the
-number here; count it. In Bash, every suite's exit code and its PASS lines:
+    for t in smoke live_test skins_test pops_separation_test 4score_rule_verify roster_test nassau_test tees_test junk_test state_size_test; do out=$(node $t.js 2>&1); echo "$t exit=$? pass=$(echo "$out" | grep -c '^PASS') fail=$(echo "$out" | grep -c FAIL)"; done
 
-    for t in smoke live_test skins_test pops_separation_test 4score_rule_verify roster_test nassau_test tees_test junk_test; do out=$(node $t.js 2>&1); echo "$t exit=$? pass=$(echo "$out" | grep -c '^PASS') fail=$(echo "$out" | grep -c FAIL)"; done
-
-**A test that passes by testing nothing is worse than one that fails.** Adding a
-`<script>` to `<head>` for the zoom fix broke `smoke.js` and `live_test.js`
-exactly that way: both assumed script `[1]` was the app and that the markup was
-everything before the first script, so they found ZERO controls and reported
-PASS. They now use `pageParts()` — longest script block is the app, markup is
-everything that is not a script. If you add another script tag, check them.
+**A test that passes by testing nothing is worse than one that fails.** `smoke.js`
+and `live_test.js` find the app with `pageParts()`: longest script block is the
+app, markup is everything that is not a script. If you add another script tag,
+check them.
 
 ---
 
 ## Deploying a change
 
-**Git auth is set up (2026-08-24).** `gh` is logged in as `kvander369` with
-`repo` scope, ADMIN on the repo, and `origin` is
-`https://github.com/kvander369/mixed-up-golf.git`. A change is now:
+`gh` is logged in as `kvander369` with `repo` scope, ADMIN on the repo, and
+`origin` is `https://github.com/kvander369/mixed-up-golf.git`. A change is:
 
     git add -A && git commit -m "..." && git push
 
-**Commit after a change is verified, then `git push`. Every time.** A commit
-left sitting on this machine is not a backup and is not deployed - it looks to
-Kyle, checking on his phone, exactly like a change that was never made. This is
-also how the project is backed up: the GitHub remote IS the backup, so an
-unpushed commit exists in one place only.
+**Commit after a change is verified, then `git push`. Every time.** The GitHub
+remote IS the backup, and an unpushed commit looks to Kyle, checking on his
+phone, exactly like a change that was never made.
 
 GitHub Pages redeploys from `main` on its own. The web upload UI at
-`github.com/kvander369/mixed-up-golf/upload/main` is still there as a fallback.
+`github.com/kvander369/mixed-up-golf/upload/main` is the fallback.
 
-Then on the phone: close the app fully and reopen twice, so the service worker
-swaps to the new cache version.
-
-**A push is not instantly live. Two delays, in order:**
+**A push is not instantly live. Two delays, in order.** "Not updating on my phone"
+is almost never a broken deploy; it is one of these two waits.
 
 1. **GitHub's CDN holds files for 10 minutes** (`Cache-Control: max-age=600`).
-   Fetch too soon and you get the OLD file however many times you try - which
-   looks exactly like a failed deploy. To check past it, add a junk query
-   string: `curl "https://kvander369.github.io/mixed-up-golf/sw.js?x=123"`.
+   Fetch too soon and you get the OLD file however many times you try. To check
+   past it, add a junk query string:
+   `curl "https://kvander369.github.io/mixed-up-golf/sw.js?x=123"`.
    To see whether the deploy has even run:
    `gh api repos/kvander369/mixed-up-golf/pages/builds/latest`.
 2. **Then the phone** needs a full close-and-reopen, twice, to swap caches.
 
-This has now caused three rounds of "not updating on my phone". It is almost
-never a broken deploy; it is one of these two waits.
-
-**To check the phone actually updated, look at the bottom of the Players
-screen.** It shows the version - v24, and so on. The number is not written in
+**Check the phone at the bottom of the Players screen.** It shows the version. The
+number is not written in
 `index.html`; the page asks the service worker that is serving it and the worker
 answers out of its own `CACHE` string. "not installed" means no service worker
 has taken over yet.
 
-**The stamp names the WORKER, not the page.** On 2026-09-19 a phone showed v23
-and drew the v22 screen: two releases went out inside GitHub's 10 minutes, and
-the new worker filled its cache with the old `index.html` from the browser's
-HTTP cache. `sw.js` now fetches the shell with `cache:'reload'` (v24, confirmed
-on Kyle's phone). If it ever recurs, that line in `sw.js` is the first place to
-look - and do not push two releases within ten minutes without saying so.
+**The stamp names the WORKER, not the page.** `sw.js` fetches the shell with
+`cache:'reload'` so a new worker cannot cache the old page. If a phone ever shows
+a new number and an old screen, that line is the first place to look - and do not
+push two releases within ten minutes without saying so.
 
-`gh` 2.98.0 is installed at `C:\Program Files\GitHub CLI\gh.exe`. The device-flow login that was abandoned
-mid-setup has since been finished, so pushing works from here.
-
-**The `!` prefix in Claude Code runs Bash, not PowerShell.** `& "C:\Program
-Files\..."` is a syntax error there; use `"/c/Program Files/GitHub CLI/gh.exe"`.
+`gh` is at `C:\Program Files\GitHub CLI\gh.exe`. **The `!` prefix in Claude Code
+runs Bash, not PowerShell:** there use `"/c/Program Files/GitHub CLI/gh.exe"`.
 
 ---
 
-**The history was rewritten and the repo recreated on 2026-08-28.** Every
-commit has a new SHA, and no commit from before that date resolves any more -
-if an old note cites one, that is why. The reason: the test fixture, the demo
-card and some docs carried the real group's names and handicaps, and one of
-those men holds public office. A force-push alone was not enough - GitHub keeps
-orphaned objects reachable by SHA - so the repository was deleted and recreated
-with the clean history. Bundles of both the old and the new history are in
-`C:\Users\vande\Claude\Projects\`.
+## What must never reach the public repo
+
+The history was rewritten and the repo recreated on 2026-08-28 to remove real
+names, so no commit from before that date resolves.
+A force-push alone is not enough: GitHub keeps orphaned objects reachable by SHA.
+Bundles of both histories are in `C:\Users\vande\Claude\Projects\`.
 
 **Never commit a real name.** Invented people (Avery, Blake, Cody, Drew, Eli,
 Chris, ChrisB, Sy) stand in throughout the tests and the demo card. Kyle's own
 name is fine - he is the commit author and the owner of the repository.
 
 **Keep private things out by name, in `.gitignore`, never by memory.** This repo
-is public. `.gitignore` has no effect on a file git already tracks - that is how
-`seat-check.ps1` reached GitHub on 2026-08-27 despite a commit saying it was
-kept out. To stop tracking one: `git rm --cached <file>`, then commit.
+is public. `.gitignore` has no effect on a file git already tracks. To stop
+tracking one: `git rm --cached <file>`, then commit.
 
 ---
 
-## The Nassau (added 2026-08-29, v18-v21)
+## The Nassau
 
-The inside game as the group actually plays it: **X and Y, five ways,
-automatic presses, option to double the back.** Its own bottom tab. Kyle taught
-it one worked example at a time and every number he agreed to is a case in
-`nassau_test.js`, which runs the app's real `nassau()` - not a copy - so it
-cannot pass while the app is wrong. **That test is the rule book.** Read it
-before touching the game; the rules in one paragraph:
+The inside game as the group actually plays it: **X and Y, five ways, automatic
+presses, option to double the back.** Its own bottom tab. **Check:** `nassau_test.js`
+is the rule book. Every number Kyle agreed to is a case in it, and it runs the
+app's real `nassau()`. Read it before touching the game.
 
 - front 1X, back 2X (4X doubled), overall 2X by holes won across 18
 - a press starts automatically the hole after a bet reaches 2 down, is worth
@@ -193,21 +164,19 @@ before touching the game; the rules in one paragraph:
 - a tied bet is "sawed off" (nobody pays); a tied front can carry to the back
   as a setting, and stays 1X even if the back is doubled
 - junk (birdies, chippies, sandies, greenies) is Y each, pooled by side.
-  Birdies are counted off the card, gross only, eagle = 2 (v25); the rest
-  are tapped, and chippie/sandie rows unlock only by tapping the word
+  Birdies are counted off the card, gross only, eagle = 2; the rest are tapped,
+  and chippie/sandie rows unlock only by tapping the word
 - defaults X=$5, Y=$2; the double is cleared by New round, X/Y/carry persist
 
-It consumes the per-hole result `insideGame()` already produces. **The stroke
-allocation did not move** - rule 4 above still holds and
-`pops_separation_test.js` still guards it.
+It consumes the per-hole result `insideGame()` already produces, so rule 4 still
+holds.
 
-A bet swinging from 2 up to 2 down never needs a ruling: a press starts at 0
-when the bet above it is at 2, the two then move in step, and the newer one
-reaches 2 down first. `nassau_test.js` proves it. Kyle confirmed the related
-case in his own words: "2 and 0, then 1 and 1, then 0 and 2 - this starts a
-new press."
+A bet swinging from 2 up to 2 down never needs a ruling: a press starts at 0 when
+the bet above it is at 2, the two move in step, and the newer one reaches 2 down
+first. Kyle's own words on the related case: "2 and 0, then 1 and 1, then 0 and 2
+- this starts a new press."
 
-## Green tees (added 2026-09-19, v22)
+## Green tees
 
 Some of the group play CCW from the green tees or the green-white combo. Each
 player row on the Players screen has a **W / G** button (white, or green/combo); the roster
@@ -215,48 +184,40 @@ remembers it the way it remembers his CH (last one used).
 
 - The card's "Men's Hdcp/G" row differs from white on **two holes only**: hole 2
   is ranked 3 white / 1 green, hole 5 is 1 white / 3 green. `ccwGreenRanks()`.
-- **The combo uses the green row.** It plays 2 and 5 from green (checked: the
-  arrows on the card add to its printed 2829 / 2839). Two patterns, not three.
+- **The combo uses the green row.** It plays 2 and 5 from green. Two patterns,
+  not three.
 - So the button changes a result only when a man is getting 1 or 2 strokes (or
   19 or 20): one shot lands on hole 2 instead of hole 5.
 - **The CH is still typed by hand** for the tees he is playing. The app knows
   no slope or rating, on purpose (Kyle, 2026-09-19).
 - **CCW only.** `isCCW()` is true while the rankings equal the CCW white row;
   away, the button is hidden and the flag does nothing.
-- Both games get a man's rankings from `ranksFor(i)`. Rule 4 is untouched: the
-  handicap inputs stay separate. `tees_test.js` runs the app's real
-  `insideGame()` and `netOf()`, and was shown to fail (8 checks) against a copy
-  with the green row set back to white.
+- Both games get a man's rankings from `ranksFor(i)`. Rule 4 is untouched.
+
+**Check:** `tees_test.js` runs the app's real `insideGame()` and `netOf()`.
 
 ## Relationship to ScannerBot
 
-Separate project, no shared code at runtime. It lives at
-`G:\My Drive\Claude-Scannerbot`. Mixed Up Golf reuses the CCW scoring *logic* and
-course data, nothing more. Do not conflate them, and do not put golf files there.
-
-One thing is outstanding over there: a tie-recap bug was fixed in ScannerBot's
-source on 2026-08-23 but **not deployed**. Noted at the top of its
-`SCANNERBOT_STATE.md`.
+Separate project (`C:\Users\vande\Claude\Projects\scannerbot`), no shared code at
+runtime. Mixed Up Golf reuses the CCW scoring *logic* and course data, nothing
+more. Do not conflate them, and do not put golf files there or in
+`G:\My Drive\Claude-Scannerbot`.
 
 ---
 
-## The roster (added 2026-08-24)
+## The roster
 
-Kyle's group is saved between rounds, so setting up is four taps instead of
-eight typed fields. **ROSTER** is on the top bar beside Course and Players.
-
-Three rules, all of them load-bearing:
+Kyle's group is saved between rounds. **ROSTER** is on the top bar beside Course
+and Players. **Check:** `roster_test.js`.
 
 1. **One CH per person, and it is the last one you used.** No stored-versus-
-   today's handicap to reconcile and no save step. Nothing can go stale
-   because nothing is kept in two places.
+   today's handicap to reconcile and no save step.
 2. **The people live in their own storage key** (`mixedUpGolf.people.v1`),
    not inside the round. "New round - clear everything" wipes scores and
    never the people.
 3. **Names that reach the card must be distinct.** Two men in the group share
-   a first name, so one of them carries an initial on the card. Scoring never
-   cared (it is all by slot index), but the roster keyed on name, so the second
-   man could not exist. A duplicate is now refused with a reason.
+   a first name, so one of them carries an initial on the card. A duplicate is
+   refused with a reason.
 
    **Their real names are not written down here.** This file is published with
    the app. Kyle knows which two; the docs and the tests use invented names.
@@ -266,23 +227,3 @@ publicly, so seeding it with the real group would put eleven men's names and
 handicaps in a public repo permanently. Kyle builds the list on the phone.
 `defaultPeople()` returns `[]` and must stay that way.
 
-## Still open
-
-- **Nothing blocking.**
-- One slow-burn unknown: **iOS storage eviction.** Home-screen PWAs are
-  *believed* exempt from Safari's ~7-day eviction of site data, never verified
-  here. If that is wrong, the app could open after a winter off with the roster
-  gone. Bounded — retype eleven names — but a nasty clubhouse surprise. The only
-  honest test is time; record the answer in `docs/GOLF_APP_STATE.md`.
-- Kyle still has to add his group on the phone: **Roster → Add someone**,
-  giving the two men who share a first name distinct card names.
-
-## Closed
-
-- **Hand-check a round — DONE 2026-08-24.** Kyle entered a card from the old
-  4Score/AppSheet app and the two agreed. That was the last thing standing
-  between "the code checks the code" and "the app can settle a bet."
-- **Offline — DONE.** Kyle confirmed it opens in airplane mode.
-- **Backup — DONE 2026-08-28.** The GitHub remote is the backup; push after
-  every commit. `RESTORE.md` records what a clone does not bring back, and that
-  the round and roster live in the phone's storage and nowhere else.

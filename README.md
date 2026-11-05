@@ -43,8 +43,8 @@ and stays on that phone.
 Decoded from the group's own Google Sheet and verified against it, not guessed.
 Full detail in `docs/GOLF_PWA_PART2_RULES.md`.
 
-**Start at `docs/GOLF_APP_STATE.md`** — where things stand, what is decided and
-why, and the traps that look like bugs to someone tidying up.
+**Start at `STATE.md`** for what is open now. `STATE-ARCHIVE.md` holds what is
+decided and why, and the traps that look like bugs to someone tidying up.
 
 Two stroke allocations, deliberately different:
 
