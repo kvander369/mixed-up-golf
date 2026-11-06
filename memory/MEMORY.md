@@ -1,0 +1,2 @@
+- [Kyle needs large, high-contrast text](kyle-needs-large-high-contrast-text.md) — small grey text has cost three rounds of rework
+- [String.replace dollar trap](string-replace-dollar-trap.md) — plain-string replacement with $` doubled a doc; use a function replacer
