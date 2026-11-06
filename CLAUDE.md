@@ -100,9 +100,8 @@ check them.
 
     git add -A && git commit -m "..." && git push
 
-**Commit after a change is verified, then `git push`. Every time.** The GitHub
-remote IS the backup, and an unpushed commit looks to Kyle, checking on his
-phone, exactly like a change that was never made.
+An unpushed commit looks to Kyle, checking on his phone, exactly like a change
+that was never made.
 
 GitHub Pages redeploys from `main` on its own. The web upload UI at
 `github.com/kvander369/mixed-up-golf/upload/main` is the fallback.
